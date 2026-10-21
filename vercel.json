@@ -2,6 +2,52 @@
   "version": 2,
   "outputDirectory": "frontend/dist",
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/admin",
+      "has": [
+        {
+          "type": "host",
+          "value": "gunasai.in"
+        }
+      ],
+      "destination": "https://admin.gunasai.in/login",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "gunasai.in"
+        }
+      ],
+      "destination": "https://admin.gunasai.in/login",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.gunasai.in"
+        }
+      ],
+      "destination": "https://admin.gunasai.in/login",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.gunasai.in"
+        }
+      ],
+      "destination": "https://admin.gunasai.in/login",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!assets).*)",

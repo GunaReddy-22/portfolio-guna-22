@@ -200,7 +200,7 @@ async function seedComplete() {
         { number: '8.04', suffix: '', label: 'CGPA' },
       ],
       floatingTags: ['Node.js', 'PostgreSQL', 'React.js', 'React Native', 'RAG / LLM'],
-      photoUrl: '/assets/portrait.jpg',
+      photoUrl: 'https://res.cloudinary.com/dzlqe2lvf/image/upload/v1792591876/guna-cms/portfolio/aes9l9kapokflfrywekr.jpg',
       photoAlt: 'Guna Sai Venkata Reddy Kovvuri',
       badge: {
         enabled: true,
@@ -494,11 +494,11 @@ async function seedComplete() {
       sectionTitle: 'Resume',
       headline: 'See it on paper.',
       frameLabel: 'Resume_KGuna.pdf',
-      previewImageUrl: '/assets/portrait.jpg',
+      previewImageUrl: 'https://res.cloudinary.com/dzlqe2lvf/image/upload/v1792591891/guna-cms/portfolio/rd0h174mbxmy59fxpcbg.png',
       previewImageAlt: 'Guna Sai Venkata Reddy Kovvuri — Resume',
       sideTitle: 'One-page snapshot of everything above.',
       sideBody: 'This is my current resume — full stack & backend focused, covering my experience at ZenithIndia, the five shipped projects, technical skill set, and education. Click below to view it full-size or download a copy.',
-      downloadPdfUrl: '/assets/Guna_Sai_Resume.pdf',
+      downloadPdfUrl: 'https://res.cloudinary.com/dzlqe2lvf/image/upload/v1792591891/guna-cms/portfolio/rd0h174mbxmy59fxpcbg.png',
       downloadButtonLabel: 'Download Full Resume',
       openFullSizeLabel: 'View in Full Window',
       highlights: [

@@ -26,9 +26,25 @@ const queryClient = new QueryClient({
 });
 
 export const App: React.FC = () => {
+  // 1. Strict hostname enforcement: gunasai.in/admin -> redirect to https://admin.gunasai.in
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+
+  if (hostname === 'gunasai.in' || hostname === 'www.gunasai.in') {
+    const cleanPath = pathname.replace(/^\/admin/, '') || '/login';
+    window.location.replace(`https://admin.gunasai.in${cleanPath}${window.location.search}`);
+    return null;
+  }
+
+  // 2. On admin.gunasai.in, normalize /admin/* to clean /* routes (e.g. /admin/login -> /login)
+  if (hostname.startsWith('admin.') && pathname.startsWith('/admin')) {
+    const cleanPath = pathname.replace(/^\/admin/, '') || '/login';
+    window.location.replace(`${cleanPath}${window.location.search}`);
+    return null;
+  }
+
   const configuredBase = import.meta.env.VITE_BASE_PATH;
-  const autoBase = window.location.pathname.startsWith('/admin') ? '/admin' : '';
-  const basename = configuredBase !== undefined ? (configuredBase === '/' ? '' : configuredBase.replace(/\/$/, '')) : autoBase;
+  const basename = configuredBase !== undefined ? (configuredBase === '/' ? '' : configuredBase.replace(/\/$/, '')) : '';
 
   return (
     <QueryClientProvider client={queryClient}>
