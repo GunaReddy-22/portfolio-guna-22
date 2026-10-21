@@ -50,7 +50,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets).*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
