@@ -338,7 +338,11 @@ export async function submitPublicForm(req: Request, res: Response, next: NextFu
         }
       }
 
-      submissionData[key] = typeof val === 'string' ? val.trim() : val;
+      if (Array.isArray(val)) {
+        submissionData[key] = val.map((v) => (typeof v === 'string' ? v.trim() : v)).filter(Boolean);
+      } else {
+        submissionData[key] = typeof val === 'string' ? val.trim() : val;
+      }
     }
 
     // 2. Validate required fields
@@ -346,7 +350,12 @@ export async function submitPublicForm(req: Request, res: Response, next: NextFu
     for (const field of form.fields) {
       if (field.required) {
         const val = submissionData[field.name];
-        if (val === undefined || val === null || val === '') {
+        if (
+          val === undefined ||
+          val === null ||
+          val === '' ||
+          (Array.isArray(val) && val.length === 0)
+        ) {
           missingFields.push(field.label || field.name);
         }
       }
@@ -391,7 +400,10 @@ export async function submitPublicForm(req: Request, res: Response, next: NextFu
 
       const escapedTitle = escapeHtml(form.title || 'Feedback Form');
       const tableRows = Object.entries(submissionData)
-        .map(([k, v]) => `<tr><td style="font-weight:bold;padding:6px;border:1px solid #ddd;">${escapeHtml(k)}</td><td style="padding:6px;border:1px solid #ddd;">${escapeHtml(String(v))}</td></tr>`)
+        .map(([k, v]) => {
+          const displayVal = Array.isArray(v) ? v.join(', ') : String(v);
+          return `<tr><td style="font-weight:bold;padding:6px;border:1px solid #ddd;">${escapeHtml(k)}</td><td style="padding:6px;border:1px solid #ddd;">${escapeHtml(displayVal)}</td></tr>`;
+        })
         .join('');
       const emailHtml = `<h3>New Submission: ${escapedTitle}</h3><table style="border-collapse:collapse;width:100%;">${tableRows}</table>`;
 

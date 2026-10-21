@@ -109,6 +109,36 @@ export function renderFeedbackFormHtml(form: any, baseUrl: string = ''): string 
     }
 
     if (field.type === 'checkbox') {
+      if (field.options && Array.isArray(field.options) && field.options.length > 0) {
+        return `
+          <div class="cms-form-field" data-field-type="checkbox-group" data-field-name="${fieldName}">
+            <label class="cms-form-label">
+              ${fieldLabel}
+              ${isRequired ? '<span class="req">*</span>' : ''}
+            </label>
+            <div class="checkbox-options-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.65rem; margin-top: 0.5rem;">
+              ${field.options.map((opt: string, optIdx: number) => {
+                const optId = `${fieldId}_${optIdx}`;
+                return `
+                  <label class="checkbox-option-card" for="${optId}" style="display:flex; align-items:flex-start; gap:0.65rem; padding:0.65rem 0.85rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; cursor:pointer; transition:all 0.15s ease;">
+                    <input
+                      type="checkbox"
+                      class="cms-form-checkbox"
+                      id="${optId}"
+                      name="${fieldName}"
+                      value="${escapeHtml(opt)}"
+                      style="margin-top:0.2rem; cursor:pointer;"
+                    />
+                    <span class="checkbox-text" style="font-size:0.9rem; line-height:1.4; color:var(--text);">${escapeHtml(opt)}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+            ${helpText}
+          </div>
+        `;
+      }
+
       return `
         <div class="cms-form-field">
           <label class="checkbox-label" for="${fieldId}">
@@ -1057,11 +1087,36 @@ export function renderFeedbackFormHtml(form: any, baseUrl: string = ''): string 
           }
         }
 
+        // Validate required checkbox groups
+        const checkboxGroups = formEl.querySelectorAll('[data-field-type="checkbox-group"]');
+        for (let i = 0; i < checkboxGroups.length; i++) {
+          const group = checkboxGroups[i];
+          const isReq = group.querySelector('.req');
+          if (isReq) {
+            const anyChecked = group.querySelector('input[type="checkbox"]:checked');
+            if (!anyChecked) {
+              const labelText = group.querySelector('.cms-form-label')?.textContent.replace('*', '').trim() || 'this question';
+              errorBanner.textContent = 'Please select at least one option for: ' + labelText;
+              errorBanner.style.display = 'block';
+              group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              return;
+            }
+          }
+        }
+
         const formData = new FormData(formEl);
         const payload = {};
         formData.forEach(function(val, key) {
           if (key === '_hp_trap') return;
-          payload[key] = val;
+          if (payload[key] !== undefined) {
+            if (Array.isArray(payload[key])) {
+              payload[key].push(val);
+            } else {
+              payload[key] = [payload[key], val];
+            }
+          } else {
+            payload[key] = val;
+          }
         });
 
         submitBtn.disabled = true;
