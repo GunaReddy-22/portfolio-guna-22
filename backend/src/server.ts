@@ -15,11 +15,12 @@ async function bootstrap() {
     const app = createApp();
 
     const server = app.listen(env.PORT, () => {
+      const publicUrl = process.env.RENDER_EXTERNAL_URL || (env.NODE_ENV === 'production' ? 'https://api.gunasai.in' : `http://localhost:${env.PORT}`);
       console.log(`\n============================================================`);
-      console.log(`🚀 Guna CMS Backend API running on http://localhost:${env.PORT}`);
-      console.log(`📁 Health Check: http://localhost:${env.PORT}/api/v1/health`);
-      console.log(`🌐 Public Site API: http://localhost:${env.PORT}/api/v1/public/site`);
-      console.log(`🔒 Admin Auth: http://localhost:${env.PORT}/api/v1/admin/auth/me`);
+      console.log(`🚀 Guna CMS Backend API running on port ${env.PORT}`);
+      console.log(`📁 Health Check: ${publicUrl}/api/v1/health`);
+      console.log(`🌐 Public Site API: ${publicUrl}/api/v1/public/site`);
+      console.log(`🔒 Admin Auth: ${publicUrl}/api/v1/admin/auth/me`);
       console.log(`============================================================\n`);
     });
 
