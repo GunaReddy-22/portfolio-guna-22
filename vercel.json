@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "outputDirectory": "frontend/dist",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/((?!admin|assets).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
