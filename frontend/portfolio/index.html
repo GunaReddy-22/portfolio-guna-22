@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<script>
+  if (window.location.hostname.startsWith('admin.') && !window.location.pathname.startsWith('/admin')) {
+    window.location.replace('/admin' + window.location.pathname + window.location.search);
+  }
+</script>
 <title id="page-title">Guna Sai Venkata Reddy Kovvuri — Full Stack Developer</title>
 <meta id="meta-desc" name="description" content="B.Tech student at NIT Delhi crafting production-grade full-stack, mobile, and AI-powered applications. I build scalable systems, implement RAG pipelines, ship real products across web, Android, and desktop."/>
 <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -27,4 +27,12 @@ if (fs.existsSync(adminDist)) {
   console.log('✓ Copied admin dashboard build to dist/admin/');
 }
 
+// Copy admin assets to dist/assets as well so root-relative asset paths resolve
+const adminAssets = path.join(adminDist, 'assets');
+const distAssets = path.join(distDir, 'assets');
+if (fs.existsSync(adminAssets)) {
+  fs.cpSync(adminAssets, distAssets, { recursive: true });
+  console.log('✓ Merged admin assets into dist/assets/');
+}
+
 console.log('🎉 Frontend dist assembled successfully for Vercel!');
