@@ -4,6 +4,16 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/((?!assets).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.gunasai.in"
+        }
+      ],
+      "destination": "/admin/index.html"
+    },
+    {
       "source": "/admin/:path*",
       "destination": "/admin/index.html"
     },
