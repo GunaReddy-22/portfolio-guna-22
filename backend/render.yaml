@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: guna-cms-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PREVIEW_SECRET
+        generateValue: true
+      - key: APP_ORIGIN
+        value: https://gunasai.in,https://www.gunasai.in,https://admin.gunasai.in,https://forms.gunasai.in
+      - key: PUBLIC_SITE_URL
+        value: https://gunasai.in
+      - key: FORMS_DOMAIN
+        value: forms.gunasai.in
+      - key: FORMS_BASE_URL
+        value: https://forms.gunasai.in
+      - key: ADMIN_EMAIL
+        value: Admin@gunasai.in
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: EMAIL_PROVIDER
+        value: brevo
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: noreply.dev.guna@gmail.com

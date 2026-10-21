@@ -1,0 +1,23 @@
+{
+  "name": "gunasai-frontend",
+  "version": "1.0.0",
+  "description": "Guna Sai Portfolio & CMS Admin Dashboard — Production Frontend for Vercel",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "portfolio",
+    "admin"
+  ],
+  "scripts": {
+    "dev:portfolio": "npm --prefix portfolio run dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "build:portfolio": "npm --prefix portfolio run build",
+    "build:admin": "npm --prefix admin run build",
+    "build": "npm run build:portfolio && npm run build:admin && node build-dist.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.3",
+    "vite": "^5.2.7"
+  }
+}

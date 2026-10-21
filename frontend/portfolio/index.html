@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title id="page-title">Guna Sai Venkata Reddy Kovvuri — Full Stack Developer</title>
+<meta id="meta-desc" name="description" content="B.Tech student at NIT Delhi crafting production-grade full-stack, mobile, and AI-powered applications. I build scalable systems, implement RAG pipelines, ship real products across web, Android, and desktop."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,500&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/portfolio.css"/>
+</head>
+<body>
+
+<div id="cms-preview-banner" class="preview-banner" style="display:none;">
+  <span>⚠️ DRAFT PREVIEW MODE — REVISION <strong id="preview-rev-badge">#1</strong> (UNPUBLISHED DRAFT)</span>
+  <a href="/admin" class="preview-banner-btn">Return to CMS Admin</a>
+</div>
+
+<canvas id="bg-canvas"></canvas>
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<nav id="nav">
+  <a href="#hero" class="logo"><span id="nav-logo-text">GS</span><span class="logo-dot" id="nav-logo-dot">.</span></a>
+  <div class="nav-end">
+  <ul class="nav-links" id="nav-links-list">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#resume">Resume</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="mailto:241310022@nitdelhi.ac.in?subject=Hiring" class="nav-cta" id="nav-cta-btn">Hire Me &#x2197;</a></li>
+  </ul>
+  <div class="nav-right">
+    <a class="mech-toggle" id="mech-toggle-btn" href="https://mech.gunasai.in" target="_blank" rel="noopener" title="Switch to Mechanical Engineering portfolio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span id="mech-toggle-label">Mech Portfolio</span>
+    </a>
+    <div class="lang-switch" id="langSwitch">
+      <button class="lang-btn" id="langBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/></svg>
+        <span id="langBtnLabel">EN</span>
+        <span class="lang-caret">&#9660;</span>
+      </button>
+      <div class="lang-dropdown" id="langDropdown" role="listbox"></div>
+    </div>
+    <button class="ham" id="ham" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+  </div>
+</nav>
+
+<div id="google_translate_element"></div>
+
+<div class="mob-menu" id="mobMenu">
+  <button class="mob-close" id="mobClose" aria-label="Close menu">&times;</button>
+  <a href="#about" onclick="closeMob()">About</a>
+  <a href="#experience" onclick="closeMob()">Experience</a>
+  <a href="#projects" onclick="closeMob()">Projects</a>
+  <a href="#education" onclick="closeMob()">Education</a>
+  <a href="#resume" onclick="closeMob()">Resume</a>
+  <a href="#contact" onclick="closeMob()">Contact</a>
+  <a href="mailto:241310022@nitdelhi.ac.in?subject=Hiring" style="color:var(--amber)">Hire Me &#x2197;</a>
+  <a href="https://mech.gunasai.in" target="_blank" rel="noopener" style="color:var(--violet);font-size:15px;font-family:var(--ff-mono);letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(124,92,252,0.35);padding:10px 22px;border-radius:100px">&#9881; Mech Portfolio</a>
+</div>
+
+<!-- Dynamic CMS Section Container -->
+<div id="cms-sections-root">
+  <!-- Baseline Sections Render Here and Hydrate Dynamically -->
+</div>
+
+<footer>
+  <div class="footer-l"><span id="footer-left-text">Designed &amp; built by</span> <span id="footer-author" style="color:var(--amber)">Guna Sai Venkata Reddy Kovvuri</span> &middot; <span id="footer-year">2026</span></div>
+  <div class="footer-r" id="footer-right-text">NIT Delhi &middot; Full-Stack Developer</div>
+</footer>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
