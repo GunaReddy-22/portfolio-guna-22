@@ -50,14 +50,10 @@ export const MediaLibrary: React.FC = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('alt', file.name.replace(/\.[^/.]+$/, ''));
-
     try {
       setUploading(true);
       setError(null);
-      await api.uploadMedia(formData);
+      await api.uploadMedia(file, file.name.replace(/\.[^/.]+$/, ''));
       setSuccessMsg(`File "${file.name}" uploaded successfully!`);
       setTimeout(() => setSuccessMsg(null), 3500);
       await loadMedia();

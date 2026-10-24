@@ -200,11 +200,110 @@ export const api = {
     if (params?.search) qs.set('search', params.search);
     return apiRequest<any>(`/api/v1/admin/media?${qs.toString()}`);
   },
-  async uploadMedia(formData: FormData) {
-    return apiRequest<any>('/api/v1/admin/media/upload', {
-      method: 'POST',
-      body: formData,
-    });
+  async uploadMedia(input: File | FormData, altText?: string) {
+    let file: File | null = null;
+    let alt = altText || '';
+
+    if (input instanceof File) {
+      file = input;
+    } else if (input instanceof FormData) {
+      const formFile = input.get('file');
+      if (formFile instanceof File) {
+        file = formFile;
+      }
+      const formAlt = input.get('alt') || input.get('altText');
+      if (typeof formAlt === 'string') {
+        alt = formAlt;
+      }
+    }
+
+    // 1. Try intent-based upload first (direct signed Cloudinary upload in production)
+    if (file) {
+      try {
+        const intentRes = await apiRequest<any>('/api/v1/admin/media/upload-intent', {
+          method: 'POST',
+          body: JSON.stringify({
+            filename: file.name,
+            mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'),
+            sizeBytes: file.size,
+            folder: 'portfolio',
+          }),
+        });
+
+        const intent = intentRes?.data || intentRes;
+
+        if (intent?.provider === 'cloudinary' && intent.uploadUrl && intent.signature) {
+          const cData = new FormData();
+          cData.append('file', file);
+          cData.append('api_key', intent.apiKey);
+          cData.append('timestamp', intent.timestamp.toString());
+          cData.append('signature', intent.signature);
+          if (intent.folder) cData.append('folder', intent.folder);
+
+          const cloudRes = await fetch(intent.uploadUrl, {
+            method: 'POST',
+            body: cData,
+          });
+
+          if (!cloudRes.ok) {
+            const cloudErr = await cloudRes.json().catch(() => ({}));
+            throw new Error(cloudErr?.error?.message || `Cloudinary upload failed (HTTP ${cloudRes.status})`);
+          }
+
+          const cloudJson = await cloudRes.json();
+          const registered = await apiRequest<any>('/api/v1/admin/media/register', {
+            method: 'POST',
+            body: JSON.stringify({
+              url: cloudJson.secure_url || cloudJson.url,
+              provider: 'cloudinary',
+              providerAssetId: cloudJson.public_id,
+              originalFilename: file.name,
+              mimeType: file.type || 'application/octet-stream',
+              fileSizeBytes: cloudJson.bytes || file.size,
+              altText: alt || file.name,
+              width: cloudJson.width,
+              height: cloudJson.height,
+            }),
+          });
+
+          return registered;
+        }
+
+        if (intent?.provider === 'local' && intent.uploadUrl) {
+          const lData = new FormData();
+          lData.append('file', file);
+          lData.append('altText', alt || file.name);
+          return await apiRequest<any>(intent.uploadUrl, {
+            method: 'POST',
+            body: lData,
+          });
+        }
+      } catch (intentErr) {
+        console.warn('Intent-based upload failed, falling back to direct server upload:', intentErr);
+      }
+    }
+
+    // 2. Direct upload fallback
+    const fd = input instanceof FormData ? input : new FormData();
+    if (file && !(input instanceof FormData)) {
+      fd.append('file', file);
+      fd.append('altText', alt || file.name);
+    }
+
+    try {
+      return await apiRequest<any>('/api/v1/admin/media/upload', {
+        method: 'POST',
+        body: fd,
+      });
+    } catch (err: any) {
+      if (err.status === 404) {
+        return await apiRequest<any>('/api/v1/admin/media/upload-local', {
+          method: 'POST',
+          body: fd,
+        });
+      }
+      throw err;
+    }
   },
   async deleteMedia(mediaId: string) {
     return apiRequest<any>(`/api/v1/admin/media/${mediaId}`, {

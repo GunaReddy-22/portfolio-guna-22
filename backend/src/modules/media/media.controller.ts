@@ -182,19 +182,6 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
       });
     }
 
-    // In production, local filesystem uploads are prohibited
-    if (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production') {
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'DURABLE_STORAGE_REQUIRED',
-          message: 'Local filesystem uploads are disabled in production. Durable media storage (Cloudinary) is required.',
-          requestId: req.requestId,
-        },
-      });
-    }
-
     // Verify magic bytes against declared MIME type to prevent polyglots / file spoofing
     const isValidSignature = verifyMagicBytes(file.path, file.mimetype);
     if (!isValidSignature) {
@@ -206,6 +193,87 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
         error: {
           code: 'INVALID_FILE_SIGNATURE',
           message: 'File content does not match the declared MIME type signature.',
+          requestId: req.requestId,
+        },
+      });
+    }
+
+    // If Cloudinary configured, upload directly to durable cloud storage
+    if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: 'portfolio',
+          resource_type: file.mimetype === 'application/pdf' ? 'raw' : 'auto',
+          use_filename: true,
+          unique_filename: true,
+        });
+
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+
+        const resourceType = file.mimetype.startsWith('image/')
+          ? 'image'
+          : file.mimetype === 'application/pdf'
+          ? 'document'
+          : 'raw';
+
+        const media = await MediaModel.create({
+          siteId: 'gunasai-in',
+          provider: 'cloudinary',
+          providerAssetId: uploadResult.public_id,
+          url: uploadResult.secure_url,
+          mimeType: file.mimetype,
+          resourceType,
+          fileSizeBytes: uploadResult.bytes || file.size,
+          originalFilename: file.originalname,
+          altText: req.body.altText || req.body.alt || file.originalname,
+          width: uploadResult.width,
+          height: uploadResult.height,
+          uploader: req.user?.email || 'owner',
+        });
+
+        await recordAuditLog({
+          req,
+          action: 'MEDIA_UPLOAD',
+          resourceType: 'media',
+          resourceId: media._id.toString(),
+          metadata: { filename: file.originalname, size: file.size, provider: 'cloudinary' },
+        });
+
+        return res.status(201).json({
+          success: true,
+          data: {
+            id: media._id.toString(),
+            _id: media._id.toString(),
+            url: media.url,
+            originalFilename: media.originalFilename,
+            fileSizeBytes: media.fileSizeBytes,
+            resourceType: media.resourceType,
+            provider: 'cloudinary',
+          },
+          message: 'File uploaded successfully',
+        });
+      } catch (cloudErr: any) {
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        console.error('Cloudinary direct upload failed:', cloudErr);
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: 'UPLOAD_FAILED',
+            message: `Cloudinary upload failed: ${cloudErr.message || 'Storage error'}`,
+            requestId: req.requestId,
+          },
+        });
+      }
+    }
+
+    // In production without Cloudinary, reject ephemeral local storage
+    if (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production') {
+      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'DURABLE_STORAGE_REQUIRED',
+          message: 'Local filesystem uploads are disabled in production. Durable media storage (Cloudinary) is required.',
           requestId: req.requestId,
         },
       });
@@ -228,7 +296,7 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
       resourceType,
       fileSizeBytes: file.size,
       originalFilename: file.originalname,
-      altText: req.body.altText || file.originalname,
+      altText: req.body.altText || req.body.alt || file.originalname,
       uploader: req.user?.email || 'owner',
     });
 
@@ -244,9 +312,12 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
       success: true,
       data: {
         id: media._id.toString(),
+        _id: media._id.toString(),
         url: media.url,
         originalFilename: media.originalFilename,
         fileSizeBytes: media.fileSizeBytes,
+        resourceType: media.resourceType,
+        provider: 'local',
       },
       message: 'File uploaded successfully',
     });

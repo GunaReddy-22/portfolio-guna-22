@@ -52,8 +52,9 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', listMedia);
-router.post('/upload-intent', uploadIntent);
+router.post('/upload', upload.single('file'), uploadLocal);
 router.post('/upload-local', upload.single('file'), uploadLocal);
+router.post('/upload-intent', uploadIntent);
 router.post('/register', registerMedia);
 router.delete('/:mediaId', requireRole('owner'), deleteMedia);
 
