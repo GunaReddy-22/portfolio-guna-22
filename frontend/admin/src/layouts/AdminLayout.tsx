@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { getPublicSiteUrl } from '../lib/api';
 
 export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -124,9 +125,9 @@ export const AdminLayout: React.FC = () => {
 
             <div className="cms-topbar-actions">
               <a
-                href={typeof window !== 'undefined' && window.location.hostname.includes('localhost') ? 'http://localhost:3000' : 'https://gunasai.in'}
+                href={getPublicSiteUrl()}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="cms-btn cms-btn-secondary cms-btn-sm"
               >
                 <ExternalLink size={14} />

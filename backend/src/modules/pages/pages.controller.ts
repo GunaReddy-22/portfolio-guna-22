@@ -426,7 +426,11 @@ export async function generatePreview(req: Request, res: Response, next: NextFun
       ttlSeconds: 7200,
     });
 
-    const previewUrl = `/?preview=true&token=${token}`;
+    const publicSiteUrl = (
+      process.env.PUBLIC_SITE_URL ||
+      (process.env.NODE_ENV === 'production' ? 'https://gunasai.in' : 'http://localhost:3000')
+    ).replace(/\/+$/, '');
+    const previewUrl = `${publicSiteUrl}/?preview=true&token=${token}`;
 
     return res.json({
       success: true,

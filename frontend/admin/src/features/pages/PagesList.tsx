@@ -89,7 +89,8 @@ export const PagesList: React.FC = () => {
   const handlePreview = async (pageId: string) => {
     try {
       const res = await api.getPreviewToken(pageId);
-      window.open(res.previewUrl || `/?preview=${res.token}`, '_blank');
+      const targetUrl = res.fullPreviewUrl || res.previewUrl || `https://gunasai.in/?preview=true&token=${res.token}`;
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } catch (err: any) {
       alert(`Preview failed: ${err?.message || 'Could not generate preview token'}`);
     }

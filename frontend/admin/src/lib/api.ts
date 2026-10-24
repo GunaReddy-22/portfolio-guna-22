@@ -11,6 +11,25 @@ export function resolveApiUrl(endpoint: string): string {
   return `${API_BASE_URL}${cleanEndpoint}`;
 }
 
+export function getPublicSiteUrl(): string {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+    return 'http://localhost:3000';
+  }
+  return 'https://gunasai.in';
+}
+
+export function resolvePreviewUrl(previewUrl?: string, token?: string): string {
+  const publicBase = getPublicSiteUrl();
+  if (previewUrl && previewUrl.startsWith('http')) {
+    return previewUrl;
+  }
+  if (previewUrl) {
+    const cleanPath = previewUrl.startsWith('/') ? previewUrl : `/${previewUrl}`;
+    return `${publicBase}${cleanPath}`;
+  }
+  return `${publicBase}/?preview=true&token=${token || ''}`;
+}
+
 let csrfToken: string | null = null;
 
 export function invalidateCsrfToken() {
@@ -156,10 +175,16 @@ export const api = {
     });
   },
   async getPreviewToken(pageId: string) {
-    return apiRequest<{ token: string; previewUrl: string; expiresAt: string }>(
+    const res = await apiRequest<{ token: string; previewUrl: string; expiresAt: string }>(
       `/api/v1/admin/pages/${pageId}/preview`,
       { method: 'POST' }
     );
+    const fullPreviewUrl = resolvePreviewUrl(res?.previewUrl, res?.token);
+    return {
+      ...res,
+      previewUrl: fullPreviewUrl,
+      fullPreviewUrl,
+    };
   },
   async getVersions(pageId: string) {
     return apiRequest<any[]>(`/api/v1/admin/pages/${pageId}/versions`);

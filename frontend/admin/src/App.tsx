@@ -30,7 +30,7 @@ export const App: React.FC = () => {
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
-  if (hostname === 'gunasai.in' || hostname === 'www.gunasai.in') {
+  if ((hostname === 'gunasai.in' || hostname === 'www.gunasai.in') && pathname.startsWith('/admin')) {
     const cleanPath = pathname.replace(/^\/admin/, '') || '/login';
     window.location.replace(`https://admin.gunasai.in${cleanPath}${window.location.search}`);
     return null;
