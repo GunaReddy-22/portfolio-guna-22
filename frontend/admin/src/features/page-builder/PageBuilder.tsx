@@ -390,6 +390,17 @@ export const PageBuilder: React.FC = () => {
     setIsDirty(true);
   };
 
+  const formatSectionsPayload = (list: any[]) =>
+    list.map((s, idx) => {
+      const isVis = s.visible !== undefined ? Boolean(s.visible) : (s.isVisible !== undefined ? Boolean(s.isVisible) : true);
+      return {
+        ...s,
+        order: idx,
+        visible: isVis,
+        isVisible: isVis,
+      };
+    });
+
   const handleSaveDraft = async () => {
     const pageId = page?._id || page?.id || pageIdParam;
     if (!pageId) return;
@@ -398,7 +409,7 @@ export const PageBuilder: React.FC = () => {
       setConflictError(null);
       const res = await api.updateDraft(pageId, {
         expectedRevision: page?.draftRevision,
-        sections: sections.map((s, idx) => ({ ...s, order: idx })),
+        sections: formatSectionsPayload(sections),
       });
       setPage((prev: any) => ({ ...prev, ...(res?.data || res) }));
       setIsDirty(false);
@@ -440,7 +451,7 @@ export const PageBuilder: React.FC = () => {
       if (isDirty) {
         const res = await api.updateDraft(pageId, {
           expectedRevision: page?.draftRevision,
-          sections: sections.map((s, idx) => ({ ...s, order: idx })),
+          sections: formatSectionsPayload(sections),
         });
         const updated = res?.data || res;
         setPage((prev: any) => ({ ...prev, ...updated }));

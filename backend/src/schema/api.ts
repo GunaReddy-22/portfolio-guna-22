@@ -33,15 +33,15 @@ export const PageVersionSnapshotSchema = z.object({
 });
 
 export const PublishPageRequestSchema = z.object({
-  expectedDraftRevision: z.number().int().optional(),
-  note: z.string().optional(),
+  expectedDraftRevision: z.number().int().nullish(),
+  note: z.string().nullish(),
 });
 
 export const UpdateDraftRequestSchema = z.object({
-  expectedRevision: z.number().int().optional(),
+  expectedRevision: z.number().int().nullish(),
   sections: z.array(CmsBlockSchema),
-  title: z.string().optional(),
-  seo: z.any().optional(),
+  title: z.string().nullish(),
+  seo: z.any().nullish(),
 });
 
 export const AuditLogEntrySchema = z.object({

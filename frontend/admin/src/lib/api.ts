@@ -83,10 +83,17 @@ export async function apiRequest<T = any>(
     if (response.status === 403 && data?.error?.code === 'CSRF_MISMATCH') {
       invalidateCsrfToken();
     }
+    const detailsMsg = Array.isArray(data?.error?.details) && data.error.details.length > 0
+      ? data.error.details.map((d: any) => `${d.path ? d.path + ': ' : ''}${d.message}`).join(', ')
+      : (typeof data?.error?.details === 'string' ? data.error.details : '');
+
+    const baseMessage = data?.error?.message || response.statusText || 'Request failed';
+    const finalMessage = detailsMsg ? `${baseMessage}: ${detailsMsg}` : baseMessage;
+
     const err: ApiError = {
       status: response.status,
       code: data?.error?.code || 'UNKNOWN_ERROR',
-      message: data?.error?.message || response.statusText || 'Request failed',
+      message: finalMessage,
       details: data?.error?.details,
     };
     throw err;
