@@ -21,6 +21,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 const TEMPLATES: Record<string, any> = {
   app_beta: {
@@ -356,9 +357,10 @@ export const FormsManager: React.FC = () => {
 
       {/* Forms Table */}
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-          Loading feedback forms...
-        </div>
+        <CmsLoadingState
+          title="Loading Feedback Forms..."
+          subtitle="Fetching configured forms, rating fields, and submission endpoints"
+        />
       ) : forms.length === 0 ? (
         <div className="cms-card" style={{ padding: '3.5rem 2rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
           <CheckSquare size={38} color="var(--cms-amber)" style={{ marginBottom: '1rem', opacity: 0.8 }} />

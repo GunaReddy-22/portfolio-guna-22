@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Palette, CheckCircle, RefreshCw, Save } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const ThemeStudio: React.FC = () => {
   const [theme, setTheme] = useState<any>({
@@ -96,9 +97,10 @@ export const ThemeStudio: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-        Loading Theme Studio...
-      </div>
+      <CmsLoadingState
+        title="Loading Theme Studio..."
+        subtitle="Retrieving design tokens, custom CSS, and typography configurations"
+      />
     );
   }
 

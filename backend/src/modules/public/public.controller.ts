@@ -191,6 +191,14 @@ export async function renderFeedbackPage(req: Request, res: Response, next: Next
       isActive: true,
     });
 
+    const hostHeader = (req.headers['x-forwarded-host'] as string) || req.get('host') || '';
+    const hostname = hostHeader.split(':')[0].toLowerCase();
+    const isProductionHost = hostname.endsWith('gunasai.in');
+
+    const portfolioUrl = (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production' || isProductionHost)
+      ? (env.PUBLIC_SITE_URL && env.PUBLIC_SITE_URL.startsWith('https://') ? env.PUBLIC_SITE_URL : 'https://gunasai.in').replace(/\/+$/, '')
+      : (env.PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+
     if (!form) {
       return res.status(404).send(`<!DOCTYPE html>
 <html lang="en">
@@ -209,7 +217,7 @@ export async function renderFeedbackPage(req: Request, res: Response, next: Next
   <div class="card">
     <h1>Feedback Form Inactive or Not Found</h1>
     <p>This feedback link is currently closed, inactive, or may have expired. Please contact the developer if you need assistance.</p>
-    <a href="/">Go to Homepage</a>
+    <a href="${portfolioUrl}">Return to Portfolio</a>
   </div>
 </body>
 </html>`);
@@ -219,7 +227,7 @@ export async function renderFeedbackPage(req: Request, res: Response, next: Next
       ? (env.FORMS_BASE_URL || `https://${env.FORMS_DOMAIN}`).replace(/\/+$/, '')
       : (process.env.FORMS_BASE_URL || `http://${req.get('host') || 'localhost:5000'}`).replace(/\/+$/, '');
 
-    const html = renderFeedbackFormHtml(form, baseUrl);
+    const html = renderFeedbackFormHtml(form, baseUrl, portfolioUrl);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.send(html);
   } catch (err) {

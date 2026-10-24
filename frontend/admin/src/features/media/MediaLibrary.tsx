@@ -11,6 +11,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const MediaLibrary: React.FC = () => {
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -159,9 +160,10 @@ export const MediaLibrary: React.FC = () => {
 
       {/* Media Grid */}
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-          Loading media library...
-        </div>
+        <CmsLoadingState
+          title="Loading Media Assets..."
+          subtitle="Connecting to Cloudinary storage and retrieving image assets"
+        />
       ) : mediaList.length === 0 ? (
         <div
           className="cms-card"

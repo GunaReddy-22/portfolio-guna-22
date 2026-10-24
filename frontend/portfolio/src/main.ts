@@ -1,4 +1,5 @@
 import { renderBlock } from './renderers.js';
+import { BASELINE_BLOCKS } from './baseline-blocks.js';
 import { escapeHtml, escapeAttr, sanitizeUrl } from './sanitize.js';
 
 const API_BASE_URL = (
@@ -13,7 +14,114 @@ export function resolveApiUrl(path: string): string {
 }
 
 // ----------------------------------------------------------------------------
-// 1. DYNAMIC CONTENT HYDRATION
+// LIVE SYNC & PROFILE HIGHLIGHTS TICKER CONTROLLER
+// Simple, non-intrusive pill matching .hero-pill aesthetic
+// Cycles through engaging profile achievements while server spins up
+// ----------------------------------------------------------------------------
+const PROFILE_FACTS: string[] = [
+  'FULL STACK DEVELOPER INTERN @ ZENITHINDIA',
+  '100+ LEETCODE DSA PROBLEMS SOLVED IN C++',
+  'BUNK360 · OFFLINE ANDROID ERP WITH SQLITE',
+  'AI BUILDER · PINECONE RAG + GROQ LLM PIPELINES',
+  'WINEERP · DESKTOP POS WITH RSA-2048 LICENSING',
+  'B.TECH MECHANICAL @ NIT DELHI · 8.04 CGPA',
+  'CONNECTING LIVE CMS DATABASE IN BACKGROUND...',
+];
+
+let tickerInterval: any = null;
+let tickerFactIndex = 0;
+
+function rotateTickerFact() {
+  const tickerText = document.getElementById('ticker-text');
+  if (!tickerText) return;
+  tickerFactIndex = (tickerFactIndex + 1) % PROFILE_FACTS.length;
+  tickerText.classList.add('ticker-swapping');
+  setTimeout(() => {
+    tickerText.textContent = PROFILE_FACTS[tickerFactIndex];
+    tickerText.classList.remove('ticker-swapping');
+  }, 220);
+}
+
+function startSyncHud(_routeLabel: string = 'home') {
+  const ticker = document.getElementById('portfolio-live-ticker');
+  const topLoader = document.getElementById('cyber-top-loader');
+  const tickerText = document.getElementById('ticker-text');
+
+  if (topLoader) {
+    topLoader.classList.remove('done');
+    topLoader.classList.add('active');
+  }
+
+  if (ticker) {
+    ticker.style.display = 'inline-flex';
+    ticker.classList.remove('synced', 'fade-out');
+    tickerFactIndex = 0;
+    if (tickerText) {
+      tickerText.textContent = PROFILE_FACTS[0];
+    }
+  }
+
+  if (tickerInterval) clearInterval(tickerInterval);
+  tickerInterval = setInterval(rotateTickerFact, 3200);
+}
+
+function markSyncSuccess(mode: 'live' | 'cache' = 'live') {
+  if (tickerInterval) {
+    clearInterval(tickerInterval);
+    tickerInterval = null;
+  }
+
+  const ticker = document.getElementById('portfolio-live-ticker');
+  const topLoader = document.getElementById('cyber-top-loader');
+  const tickerText = document.getElementById('ticker-text');
+
+  if (topLoader) {
+    topLoader.classList.add('done');
+    setTimeout(() => {
+      topLoader.classList.remove('active');
+    }, 450);
+  }
+
+  if (ticker) {
+    ticker.classList.add('synced');
+    if (tickerText) {
+      tickerText.textContent = mode === 'live' ? '✓ LIVE CMS CONNECTED' : '✓ PORTFOLIO READY';
+    }
+
+    // Auto-fade after 2.5s to keep UI clean and unobtrusive
+    setTimeout(() => {
+      if (ticker) {
+        ticker.classList.add('fade-out');
+        setTimeout(() => {
+          ticker.style.display = 'none';
+        }, 600);
+      }
+    }, 2500);
+  }
+}
+
+function renderCyberPageLoader(slug: string): string {
+  return `
+    <div class="cyber-page-loader">
+      <div class="cpl-stage">
+        <div class="cpl-ring-1"></div>
+        <div class="cpl-brand">GS<span>.</span></div>
+      </div>
+      <div class="cpl-hud-box">
+        <div class="cpl-title">
+          <span class="ticker-pulse-dot"></span>
+          INITIALIZING /${escapeHtml(slug)}
+        </div>
+        <p class="cpl-desc">
+          Spinning up live cloud CMS container. Displaying baseline portfolio...
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// 1. DYNAMIC CONTENT HYDRATION WITH RESILIENT RETRY
 // ----------------------------------------------------------------------------
 async function hydratePortfolio() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,48 +132,110 @@ async function hydratePortfolio() {
   }
   const isPreview = Boolean(previewToken || previewParam === 'true');
 
-  let pageApiUrl = '/api/v1/public/pages/home';
+  // Extract route slug from path
+  const pathParts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  const rawSlug = pathParts[0] && pathParts[0] !== 'index.html' ? pathParts[0] : 'home';
+  const slug = decodeURIComponent(rawSlug);
+
+  let pageApiUrl = `/api/v1/public/pages/${encodeURIComponent(slug)}`;
   if (isPreview && previewToken) {
-    pageApiUrl = `/api/v1/public/pages/home?preview=true&token=${encodeURIComponent(previewToken)}`;
+    pageApiUrl = `/api/v1/public/pages/${encodeURIComponent(slug)}?preview=true&token=${encodeURIComponent(previewToken)}`;
     const banner = document.getElementById('cms-preview-banner');
     if (banner) banner.style.display = 'flex';
   }
 
-  try {
-    // 1. Fetch public site settings
-    const siteRes = await fetch(resolveApiUrl('/api/v1/public/site'));
-    if (siteRes.ok) {
-      const siteJson = await siteRes.json();
-      if (siteJson.success && siteJson.data) {
-        applySiteSettings(siteJson.data);
-      }
-    }
+  const root = document.getElementById('cms-sections-root');
 
-    // 2. Fetch page sections
-    const pageRes = await fetch(resolveApiUrl(pageApiUrl));
-    if (pageRes.ok) {
-      const pageJson = await pageRes.json();
-      if (pageJson.success && pageJson.data?.sections) {
-        const root = document.getElementById('cms-sections-root');
-        if (root) {
-          root.innerHTML = pageJson.data.sections.map((sec: any) => renderBlock(sec)).join('');
-          if (isPreview) {
-            const badge = document.getElementById('preview-rev-badge');
-            if (badge) badge.textContent = `#${pageJson.data.revision || 'DRAFT'}`;
-          }
-          bindFormSubmissions();
-          setupInteractiveBehaviors();
-          return;
-        }
-      }
+  // 1. If home route, immediately render complete static baseline so user gets 0ms instant content
+  if (slug === 'home') {
+    if (root && root.innerHTML.trim() === '') {
+      root.innerHTML = BASELINE_BLOCKS.map((sec) => renderBlock(sec)).join('');
+      bindFormSubmissions();
+      setupInteractiveBehaviors();
     }
-  } catch (err) {
-    console.warn('[CMS Hydration] Could not reach CMS API, rendering baseline fallback:', err);
+  } else {
+    // If custom subpage route, show authentic cyber loading graphic while waiting
+    if (root) {
+      root.innerHTML = renderCyberPageLoader(slug);
+    }
   }
 
-  // Fallback to baseline if API fails
-  renderFallbackSections();
-  setupInteractiveBehaviors();
+  // Start top progress shimmer and Live Sync HUD
+  startSyncHud(slug);
+
+  // 2. Fetch site settings & page data with auto-retry during container spin-up
+  let attempts = 0;
+  const maxAttempts = 15; // 15 attempts * 3s = 45s window for cold boots
+  let connected = false;
+
+  while (attempts < maxAttempts && !connected) {
+    attempts++;
+    try {
+      // Fetch site settings and page data in parallel
+      const [siteRes, pageRes] = await Promise.all([
+        fetch(resolveApiUrl('/api/v1/public/site')),
+        fetch(resolveApiUrl(pageApiUrl)),
+      ]);
+
+      if (siteRes.ok) {
+        const siteJson = await siteRes.json();
+        if (siteJson.success && siteJson.data) {
+          applySiteSettings(siteJson.data);
+        }
+      }
+
+      if (pageRes.ok) {
+        const pageJson = await pageRes.json();
+        if (pageJson.success && pageJson.data?.sections) {
+          if (root) {
+            root.innerHTML = pageJson.data.sections.map((sec: any) => renderBlock(sec)).join('');
+            if (isPreview) {
+              const badge = document.getElementById('preview-rev-badge');
+              if (badge) badge.textContent = `#${pageJson.data.revision || 'DRAFT'}`;
+            }
+            bindFormSubmissions();
+            setupInteractiveBehaviors();
+          }
+          markSyncSuccess('live');
+          connected = true;
+          return;
+        }
+      } else if (pageRes.status === 404 && slug !== 'home') {
+        // Page explicitly not found
+        if (root) {
+          root.innerHTML = `
+            <div class="cyber-page-loader">
+              <div class="cpl-hud-box" style="border-color:var(--rose)">
+                <div class="cpl-title" style="color:var(--rose)">404 · PAGE NOT FOUND</div>
+                <p class="cpl-desc">The requested page route <code>/${escapeHtml(slug)}</code> does not exist.</p>
+                <div style="margin-top:20px">
+                  <a href="/" class="btn-primary" style="display:inline-block">Return to Home &rarr;</a>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        markSyncSuccess('live');
+        return;
+      }
+    } catch (err) {
+      console.warn(`[CMS Hydration] Attempt #${attempts} waiting for server to spin up:`, err);
+    }
+
+    if (!connected && attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+
+  // If after retries the server could not be reached, ensure baseline is intact
+  if (!connected) {
+    if (slug === 'home' && root && root.children.length === 0) {
+      root.innerHTML = BASELINE_BLOCKS.map((sec) => renderBlock(sec)).join('');
+      bindFormSubmissions();
+      setupInteractiveBehaviors();
+    }
+    markSyncSuccess('cache');
+  }
 }
 
 function applySiteSettings(site: any) {
@@ -172,56 +342,7 @@ function applySiteSettings(site: any) {
 function renderFallbackSections() {
   const root = document.getElementById('cms-sections-root');
   if (!root) return;
-
-  // Baseline structure extracted from original portfolio
-  root.innerHTML = `
-    <section id="hero">
-      <div class="orb1 hero-orb"></div>
-      <div class="orb2 hero-orb"></div>
-      <div class="orb3 hero-orb"></div>
-      <div class="bg-grid"></div>
-      <div class="float-tag ft1">Node.js</div>
-      <div class="float-tag ft2">PostgreSQL</div>
-      <div class="float-tag ft3">React.js</div>
-      <div class="float-tag ft4">React Native</div>
-      <div class="float-tag ft5">RAG / LLM</div>
-      <div class="hero-inner">
-        <div class="hero-text">
-          <div class="hero-pill"><span class="pulse"></span>Full Stack Developer Intern @ ZenithIndia</div>
-          <div class="hero-eyebrow"><span class="eyebrow-dash"></span>Full-Stack Developer · AI Builder</div>
-          <h1 class="hero-name">GUNA<span class="name-serif">Sai Venkata Reddy</span><span class="name-last">KOVVURI</span></h1>
-          <p class="hero-desc">B.Tech student at <strong>NIT Delhi</strong> crafting production-grade full-stack, mobile, and AI-powered applications. I build scalable systems, implement RAG pipelines, ship real products across web, Android, and desktop.</p>
-          <div class="hero-btns">
-            <a href="#projects" class="btn-primary">View Projects &rarr;</a>
-            <a href="#resume" class="btn-secondary">View Resume</a>
-          </div>
-          <div class="hero-stats">
-            <div class="hstat"><div class="hstat-num">100<span class="suf">+</span></div><div class="hstat-label">DSA Problems</div></div>
-            <div class="hstat"><div class="hstat-num">5</div><div class="hstat-label">Shipped Projects</div></div>
-            <div class="hstat"><div class="hstat-num">8.04</div><div class="hstat-label">CGPA</div></div>
-          </div>
-        </div>
-        <div class="hero-photo-wrap">
-          <div class="hero-photo-ring"></div>
-          <div class="hero-photo-frame">
-            <div class="photo-corner pc-tl"></div>
-            <div class="photo-corner pc-br"></div>
-            <img src="/assets/hero-portrait.jpg" alt="Guna Sai Venkata Reddy Kovvuri" />
-            <div class="photo-badge">
-              <div class="pb-dot"></div>
-              <div class="pb-text">OPEN TO WORK<strong>Full-Stack &amp; AI Roles</strong></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <div class="marquee-strip">
-      <div class="marquee-inner">
-        <span>FULL-STACK DEVELOPMENT</span><span>AI &amp; LLM AGENTS</span><span>REACT NATIVE</span><span>POSTGRESQL &amp; MONGODB</span><span>CLOUD ARCHITECTURE</span><span>FASTAPI &amp; NODE.JS</span>
-        <span>FULL-STACK DEVELOPMENT</span><span>AI &amp; LLM AGENTS</span><span>REACT NATIVE</span><span>POSTGRESQL &amp; MONGODB</span><span>CLOUD ARCHITECTURE</span><span>FASTAPI &amp; NODE.JS</span>
-      </div>
-    </div>
-  `;
+  root.innerHTML = BASELINE_BLOCKS.map((sec) => renderBlock(sec)).join('');
 }
 
 function bindFormSubmissions() {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { History, RotateCcw, CheckCircle, AlertCircle, Eye } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const RevisionHistory: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -127,9 +128,10 @@ export const RevisionHistory: React.FC = () => {
       )}
 
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-          Loading revision history snapshots...
-        </div>
+        <CmsLoadingState
+          title="Loading Revision Snapshots..."
+          subtitle="Querying versioned immutable backups from database"
+        />
       ) : versions.length === 0 ? (
         <div className="cms-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
           No revision snapshots recorded yet. Publishing or editing pages will generate immutable snapshots here.

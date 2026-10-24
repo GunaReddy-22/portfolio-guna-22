@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const PagesList: React.FC = () => {
   const [pages, setPages] = useState<any[]>([]);
@@ -127,9 +128,10 @@ export const PagesList: React.FC = () => {
       )}
 
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-          Loading pages...
-        </div>
+        <CmsLoadingState
+          title="Loading Portfolio Pages..."
+          subtitle="Connecting to database and fetching page layouts"
+        />
       ) : (
         <div className="cms-table-container">
           <table className="cms-table">

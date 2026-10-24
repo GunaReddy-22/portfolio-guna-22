@@ -16,6 +16,7 @@ import {
   Check,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const SubmissionsInbox: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -204,9 +205,10 @@ export const SubmissionsInbox: React.FC = () => {
 
       {/* Submissions Table */}
       {loading ? (
-        <div style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-          Loading feedback responses...
-        </div>
+        <CmsLoadingState
+          title="Loading Feedback Submissions..."
+          subtitle="Decrypting incoming user reviews and feedback submissions"
+        />
       ) : submissions.length === 0 ? (
         <div className="cms-card" style={{ padding: '3.5rem 2rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
           <Inbox size={36} color="var(--cms-amber)" style={{ opacity: 0.7, marginBottom: '0.75rem' }} />

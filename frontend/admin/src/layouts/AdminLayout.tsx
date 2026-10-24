@@ -124,7 +124,7 @@ export const AdminLayout: React.FC = () => {
 
             <div className="cms-topbar-actions">
               <a
-                href="/"
+                href={typeof window !== 'undefined' && window.location.hostname.includes('localhost') ? 'http://localhost:3000' : 'https://gunasai.in'}
                 target="_blank"
                 rel="noreferrer"
                 className="cms-btn cms-btn-secondary cms-btn-sm"

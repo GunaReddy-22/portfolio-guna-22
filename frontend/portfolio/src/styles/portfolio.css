@@ -335,3 +335,194 @@ footer{border-top:1px solid var(--border);background:var(--void);padding:28px 64
   nav{padding:16px 18px}
   .proj-name{font-size:28px}
 }
+
+/* ==========================================================================
+   PORTFOLIO LIVE SYNC TICKER & LOADING STATES
+   Exact authentic style: subtle pill, Space Mono, non-intrusive
+   ========================================================================== */
+
+/* 1. Viewport Top Shimmer Bar */
+#cyber-top-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  z-index: 99999;
+  pointer-events: none;
+  background: rgba(255, 200, 74, 0.08);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#cyber-top-loader.active {
+  opacity: 1;
+}
+#cyber-top-loader .ctl-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--amber) 40%, var(--teal) 70%, transparent);
+  box-shadow: 0 0 12px rgba(255, 200, 74, 0.7);
+  animation: ctlSweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+#cyber-top-loader.done .ctl-bar {
+  left: 0;
+  width: 100%;
+  background: var(--teal);
+  animation: none;
+  transition: width 0.3s ease;
+}
+
+@keyframes ctlSweep {
+  0% { left: -40%; }
+  100% { left: 140%; }
+}
+
+/* 2. Floating Profile Highlights Live Ticker (matches .hero-pill aesthetic) */
+#portfolio-live-ticker {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  z-index: 9990;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(8, 12, 20, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 200, 74, 0.25);
+  border-radius: 100px;
+  padding: 8px 18px;
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(255, 200, 74, 0.08);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  user-select: none;
+  max-width: 90vw;
+  white-space: nowrap;
+}
+
+#ticker-text {
+  display: inline-block;
+  transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#ticker-text.ticker-swapping {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.ticker-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--amber);
+  animation: pulseAnim 2s infinite;
+}
+
+#portfolio-live-ticker.synced {
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(34, 197, 94, 0.15);
+}
+#portfolio-live-ticker.synced .ticker-pulse-dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: none;
+}
+
+#portfolio-live-ticker.fade-out {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+/* 3. Clean Subpage Route Loader (Simple & On-Brand) */
+.cyber-page-loader {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  position: relative;
+  z-index: 10;
+  text-align: center;
+}
+.cpl-stage {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.cpl-ring-1 {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 200, 74, 0.3);
+  border-top-color: var(--amber);
+  animation: hudOrbitSpin 1.6s linear infinite;
+}
+.cpl-brand {
+  font-family: var(--ff-display);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.cpl-brand span {
+  color: var(--amber);
+}
+.cpl-hud-box {
+  max-width: 480px;
+  width: 100%;
+}
+.cpl-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 200, 74, 0.09);
+  border: 1px solid rgba(255, 200, 74, 0.22);
+  border-radius: 100px;
+  padding: 8px 18px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+.cpl-desc {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+@keyframes hudOrbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  #portfolio-live-ticker {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    justify-content: center;
+    font-size: 9.5px;
+    padding: 7px 14px;
+    letter-spacing: 0.08em;
+  }
+}

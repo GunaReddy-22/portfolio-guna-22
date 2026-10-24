@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Settings, Save, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const SiteSettings: React.FC = () => {
   const [settings, setSettings] = useState<any>({
@@ -138,9 +139,10 @@ export const SiteSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-        Loading Site Settings...
-      </div>
+      <CmsLoadingState
+        title="Loading Site Configuration..."
+        subtitle="Retrieving global metadata, navigation links, and social credentials"
+      />
     );
   }
 

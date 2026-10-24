@@ -65,19 +65,20 @@ export const useAuth = () => {
   return context;
 };
 
+import { CmsLoadingState } from '../components/CmsLoadingState';
+
 export const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return (
-      <div className="cms-app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--cms-amber)', marginBottom: '0.5rem' }}>
-            Loading Guna CMS...
-          </div>
-          <div style={{ color: 'var(--cms-text-muted)', fontSize: '0.85rem' }}>Verifying authenticated session</div>
-        </div>
+      <div className="cms-app">
+        <CmsLoadingState
+          fullScreen
+          title="Verifying Authenticated Session..."
+          subtitle="Connecting to secure Guna CMS backend services"
+        />
       </div>
     );
   }

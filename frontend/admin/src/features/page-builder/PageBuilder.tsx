@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { BlockEditor } from './BlockEditor';
+import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 // Sortable Section Item Component
 const SortableSectionItem: React.FC<{
@@ -464,9 +465,10 @@ export const PageBuilder: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-        Loading Visual Page Builder...
-      </div>
+      <CmsLoadingState
+        title="Loading Visual Page Builder..."
+        subtitle="Retrieving page sections, schema blocks, and draft revisions"
+      />
     );
   }
 

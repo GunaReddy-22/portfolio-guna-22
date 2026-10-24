@@ -192,5 +192,31 @@ describe('Forms & Submissions Inbox API', () => {
     expect(csvText).toContain("'=cmd|/c calc.exe!A1");
     expect(csvText).toContain("'+123456789");
   });
+
+  it('renders public feedback form HTML with Portfolio Home linking to https://gunasai.in', async () => {
+    // Request form via forms subdomain host header
+    const res = await request(app)
+      .get('/feedback/hire-inquiry')
+      .set('Host', 'forms.gunasai.in');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    // Ensure Portfolio Home and GS. logo link to https://gunasai.in and not forms.gunasai.in
+    expect(res.text).toContain('<a href="https://gunasai.in" class="nav-cta">');
+    expect(res.text).toContain('<span>Portfolio Home</span> &#x2197;');
+    expect(res.text).toContain('<a href="https://gunasai.in" class="logo">');
+    expect(res.text).not.toContain('<a href="https://forms.gunasai.in" class="nav-cta">');
+  });
+
+  it('renders 404 inactive page linking back to Portfolio when form is not found', async () => {
+    const res = await request(app)
+      .get('/feedback/non-existent-form')
+      .set('Host', 'forms.gunasai.in');
+
+    expect(res.status).toBe(404);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.text).toContain('<a href="https://gunasai.in">Return to Portfolio</a>');
+  });
 });
+
 

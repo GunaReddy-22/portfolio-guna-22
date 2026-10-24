@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
+import { CmsLoadingState } from '../../components/CmsLoadingState';
+
 export const Overview: React.FC = () => {
   const [stats, setStats] = useState({
     pagesCount: 0,
@@ -65,9 +67,10 @@ export const Overview: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
-        Loading dashboard statistics...
-      </div>
+      <CmsLoadingState
+        title="Loading Dashboard Analytics..."
+        subtitle="Connecting to database and aggregating system telemetry"
+      />
     );
   }
 

@@ -24,7 +24,12 @@ function formatTitleWithSerifAccent(rawTitle: string): string {
   return `${main} <span class="serif-accent">${last}</span>`;
 }
 
-export function renderFeedbackFormHtml(form: any, baseUrl: string = ''): string {
+export function renderFeedbackFormHtml(
+  form: any,
+  baseUrl: string = '',
+  portfolioUrl: string = 'https://gunasai.in'
+): string {
+  const homeUrl = escapeHtml(portfolioUrl || 'https://gunasai.in');
   const formTitle = escapeHtml(form.title || 'App Feedback Form');
   const formattedHeroTitle = formatTitleWithSerifAccent(form.title || 'App Feedback Form');
   const formDescription = escapeHtml(
@@ -900,10 +905,10 @@ export function renderFeedbackFormHtml(form: any, baseUrl: string = ''): string 
 
   <!-- Top Navigation Header -->
   <nav class="site-nav">
-    <a href="${baseUrl || '/'}" class="logo">
+    <a href="${homeUrl}" class="logo">
       <span>GS</span><span class="logo-dot">.</span>
     </a>
-    <a href="${baseUrl || '/'}" class="nav-cta">
+    <a href="${homeUrl}" class="nav-cta">
       <span>Portfolio Home</span> &#x2197;
     </a>
   </nav>
@@ -1120,7 +1125,7 @@ export function renderFeedbackFormHtml(form: any, baseUrl: string = ''): string 
         });
 
         submitBtn.disabled = true;
-        btnText.textContent = 'Submitting Feedback...';
+        btnText.innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#000;box-shadow:0 0 6px rgba(0,0,0,0.5);margin-right:8px;vertical-align:middle;animation:pulseAnim 1s infinite"></span> Submitting Feedback...';
 
         try {
           const res = await fetch('/api/v1/public/forms/${formSlug}/submissions', {

@@ -134,7 +134,17 @@ export const Login: React.FC = () => {
               style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
               disabled={loading}
             >
-              {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+              {loading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span
+                    className="cms-loading-pulse-dot"
+                    style={{ width: '8px', height: '8px', backgroundColor: '#000', boxShadow: 'none' }}
+                  ></span>
+                  Connecting &amp; Waking Server...
+                </span>
+              ) : (
+                'Sign In to Dashboard'
+              )}
             </button>
           </form>
 
