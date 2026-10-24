@@ -66,13 +66,17 @@ export const MediaLibrary: React.FC = () => {
   };
 
   const handleDelete = async (mediaId: string, filename: string) => {
+    if (!mediaId || mediaId === 'undefined') {
+      alert('Cannot delete: Missing media asset ID.');
+      return;
+    }
     if (!window.confirm(`Are you sure you want to delete "${filename}"?`)) return;
 
     try {
       await api.deleteMedia(mediaId);
       setSuccessMsg(`Deleted "${filename}".`);
       setTimeout(() => setSuccessMsg(null), 3000);
-      setMediaList((prev) => prev.filter((m) => m._id !== mediaId));
+      setMediaList((prev) => prev.filter((m) => (m._id || m.id) !== mediaId));
     } catch (err: any) {
       alert(`Delete failed: ${err.message}`);
     }
@@ -186,42 +190,45 @@ export const MediaLibrary: React.FC = () => {
       ) : (
         <div className="cms-media-grid">
           {mediaList.map((media) => {
+            const mediaId = media._id || media.id;
+            const filename = media.originalFilename || media.filename || 'media asset';
+            const size = media.fileSizeBytes ?? media.size;
             const isImage = media.mimeType?.startsWith('image/');
-            const isPdf = media.mimeType?.includes('pdf');
+            const isPdf = media.mimeType?.includes('pdf') || filename.toLowerCase().endsWith('.pdf');
 
             return (
-              <div key={media._id} className="cms-media-card">
+              <div key={mediaId || media.url} className="cms-media-card">
                 <div className="cms-media-thumb">
                   {isImage ? (
-                    <img src={media.url} alt={media.alt || media.filename} loading="lazy" />
+                    <img src={media.url} alt={media.altText || media.alt || filename} loading="lazy" />
                   ) : (
                     <FileText size={36} color="var(--cms-amber)" />
                   )}
                 </div>
 
                 <div className="cms-media-info">
-                  <div className="cms-media-name" title={media.filename}>
-                    {media.filename}
+                  <div className="cms-media-name" title={filename}>
+                    {filename}
                   </div>
                   <div className="cms-media-size">
-                    {media.size ? `${(media.size / 1024).toFixed(1)} KB` : 'Unknown size'} •{' '}
+                    {size ? `${(size / 1024).toFixed(1)} KB` : 'Unknown size'} •{' '}
                     {isPdf ? 'PDF' : isImage ? 'Image' : 'File'}
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.65rem' }}>
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(media.url, media._id)}
+                      onClick={() => copyToClipboard(media.url, mediaId)}
                       className="cms-btn cms-btn-secondary cms-btn-sm"
                       style={{ flex: 1 }}
                       title="Copy URL"
                     >
-                      {copiedId === media._id ? <Check size={14} color="var(--cms-success)" /> : <Copy size={14} />}
-                      <span style={{ fontSize: '0.75rem' }}>{copiedId === media._id ? 'Copied' : 'Copy URL'}</span>
+                      {copiedId === mediaId ? <Check size={14} color="var(--cms-success)" /> : <Copy size={14} />}
+                      <span style={{ fontSize: '0.75rem' }}>{copiedId === mediaId ? 'Copied' : 'Copy URL'}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDelete(media._id, media.filename)}
+                      onClick={() => handleDelete(mediaId, filename)}
                       className="cms-btn cms-btn-danger cms-btn-sm cms-btn-icon"
                       title="Delete Asset"
                     >

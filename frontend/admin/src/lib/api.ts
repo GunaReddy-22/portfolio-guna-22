@@ -331,6 +331,9 @@ export const api = {
     }
   },
   async deleteMedia(mediaId: string) {
+    if (!mediaId || mediaId === 'undefined') {
+      throw new Error('Valid media asset ID is required for deletion');
+    }
     return apiRequest<any>(`/api/v1/admin/media/${mediaId}`, {
       method: 'DELETE',
     });

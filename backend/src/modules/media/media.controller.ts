@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { MediaModel } from '../../database/models/Media.js';
+import { PageModel } from '../../database/models/Page.js';
 import { env } from '../../config/env.js';
 import { RegisterMediaRequestSchema, UploadIntentRequestSchema } from '../../schema/index.js';
 import { recordAuditLog } from '../../middleware/audit.js';
@@ -46,13 +47,16 @@ export async function listMedia(req: Request, res: Response, next: NextFunction)
       data: {
         items: items.map((m) => ({
           id: m._id.toString(),
+          _id: m._id.toString(),
           url: m.url,
           provider: m.provider,
           originalFilename: m.originalFilename,
+          filename: m.originalFilename,
           altText: m.altText,
           mimeType: m.mimeType,
           resourceType: m.resourceType,
           fileSizeBytes: m.fileSizeBytes,
+          size: m.fileSizeBytes,
           width: m.width,
           height: m.height,
           referenceCount: m.referenceCount,
@@ -128,8 +132,6 @@ export async function uploadIntent(req: Request, res: Response, next: NextFuncti
     next(err);
   }
 }
-
-import { PageModel } from '../../database/models/Page.js';
 
 function verifyMagicBytes(filePath: string, mimeType: string): boolean {
   try {
@@ -246,7 +248,9 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
             _id: media._id.toString(),
             url: media.url,
             originalFilename: media.originalFilename,
+            filename: media.originalFilename,
             fileSizeBytes: media.fileSizeBytes,
+            size: media.fileSizeBytes,
             resourceType: media.resourceType,
             provider: 'cloudinary',
           },
@@ -315,7 +319,9 @@ export async function uploadLocal(req: Request, res: Response, next: NextFunctio
         _id: media._id.toString(),
         url: media.url,
         originalFilename: media.originalFilename,
+        filename: media.originalFilename,
         fileSizeBytes: media.fileSizeBytes,
+        size: media.fileSizeBytes,
         resourceType: media.resourceType,
         provider: 'local',
       },
@@ -403,6 +409,14 @@ export async function registerMedia(req: Request, res: Response, next: NextFunct
 export async function deleteMedia(req: Request, res: Response, next: NextFunction) {
   try {
     const { mediaId } = req.params;
+
+    if (!mediaId || mediaId === 'undefined' || mediaId === 'null' || !/^[0-9a-fA-F]{24}$/.test(mediaId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_ID', message: 'Valid media ID is required.', requestId: req.requestId },
+      });
+    }
+
     const media = await MediaModel.findById(mediaId);
 
     if (!media) {
@@ -446,6 +460,16 @@ export async function deleteMedia(req: Request, res: Response, next: NextFunctio
           requestId: req.requestId,
         },
       });
+    }
+
+    // If Cloudinary file, remove from Cloudinary
+    if (media.provider === 'cloudinary' && media.providerAssetId && env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET) {
+      try {
+        const resourceType = media.mimeType === 'application/pdf' ? 'raw' : 'image';
+        await cloudinary.uploader.destroy(media.providerAssetId, { resource_type: resourceType });
+      } catch (e) {
+        console.warn('[Media] Could not delete from Cloudinary:', e);
+      }
     }
 
     // If local file, delete from disk
