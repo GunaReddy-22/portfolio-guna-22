@@ -1302,21 +1302,39 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                     />
                   </div>
                   <div className="cms-form-group">
-                    <label className="cms-label">Platform Badge Label</label>
-                    <input
-                      type="text"
-                      className="cms-input"
-                      placeholder="Android / Windows"
-                      value={proj.platformBadge?.text || ''}
-                      onChange={(e) => {
-                        const next = [...projects];
-                        next[idx].platformBadge = {
-                          ...(next[idx].platformBadge || { type: 'web' }),
-                          text: e.target.value,
-                        };
-                        updateContent('projects', next);
-                      }}
-                    />
+                    <label className="cms-label">Platform Badge Label &amp; Style</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px', gap: '8px' }}>
+                      <input
+                        type="text"
+                        className="cms-input"
+                        placeholder="e.g. Full-Stack EdTech / Android"
+                        value={proj.platformBadge?.text || ''}
+                        onChange={(e) => {
+                          const next = [...projects];
+                          next[idx].platformBadge = {
+                            ...(next[idx].platformBadge || { type: 'web' }),
+                            text: e.target.value,
+                          };
+                          updateContent('projects', next);
+                        }}
+                      />
+                      <select
+                        className="cms-input"
+                        value={proj.platformBadge?.type || 'web'}
+                        onChange={(e) => {
+                          const next = [...projects];
+                          next[idx].platformBadge = {
+                            ...(next[idx].platformBadge || { text: '' }),
+                            type: e.target.value,
+                          };
+                          updateContent('projects', next);
+                        }}
+                      >
+                        <option value="web">Web (Amber)</option>
+                        <option value="android">Mobile (Teal)</option>
+                        <option value="desktop">Desktop (Rose)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>

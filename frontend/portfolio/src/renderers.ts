@@ -300,7 +300,7 @@ export function renderBlock(block: CmsBlock): string {
               }
               ${
                 p.platformBadge
-                  ? `<div class="platform-badge pb-${escapeAttr(p.platformBadge.type || 'web')}">${escapeHtml(
+                  ? `<div class="platform-badge pb-${escapeAttr(p.platformBadge.type || 'web')}"><span class="platform-badge-dot"></span>${escapeHtml(
                       p.platformBadge.text || ''
                     )}</div>`
                   : ''

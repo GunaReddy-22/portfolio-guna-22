@@ -206,9 +206,11 @@ h2.sec-title em{font-family:var(--ff-serif);font-style:italic;font-weight:400;co
 .proj-link-btn.btn-download:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,212,180,0.1);box-shadow:0 0 20px rgba(0,212,180,0.25)}
 .proj-link-btn.btn-github{border-color:rgba(124,92,252,0.25);color:var(--text-soft)}
 .proj-link-btn.btn-github:hover{border-color:#a78bfa;color:#a78bfa;background:rgba(124,92,252,0.14);box-shadow:0 0 20px rgba(124,92,252,0.28)}
-.ai-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,92,252,0.12);border:1px solid rgba(124,92,252,0.3);border-radius:100px;padding:4px 12px;font-family:var(--ff-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#a78bfa;margin-bottom:14px}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,92,252,0.12);border:1px solid rgba(124,92,252,0.3);border-radius:100px;padding:4px 12px;font-family:var(--ff-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#a78bfa;margin-bottom:14px;margin-right:8px}
 .ai-badge-dot{width:5px;height:5px;border-radius:50%;background:#a78bfa;animation:pulseAnim 2s infinite}
-.platform-badge{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:4px 12px;font-family:var(--ff-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px}
+.platform-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,200,74,0.12);border:1px solid rgba(255,200,74,0.3);border-radius:100px;padding:4px 12px;font-family:var(--ff-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.platform-badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;flex-shrink:0;animation:pulseAnim 2s infinite}
+.pb-web{background:rgba(255,200,74,0.12);border:1px solid rgba(255,200,74,0.3);color:var(--amber)}
 .pb-android{background:rgba(0,212,180,0.12);border:1px solid rgba(0,212,180,0.3);color:var(--teal)}
 .pb-desktop{background:rgba(255,107,138,0.12);border:1px solid rgba(255,107,138,0.3);color:var(--rose)}
 .dl-note{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-muted);text-align:right;max-width:130px}
