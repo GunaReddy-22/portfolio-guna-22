@@ -1,6 +1,67 @@
 import { CmsBlock } from '@guna-cms/schema';
 import { escapeHtml, escapeAttr, sanitizeUrl, sanitizeRichText } from './sanitize.js';
 
+export const SVG_WEB = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="proj-btn-icon proj-btn-icon-web" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+
+export const SVG_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor" class="proj-btn-icon proj-btn-icon-play" aria-hidden="true"><path d="M22.018 13.298l-3.919 2.218-3.515-3.492 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.593zM1.23 1.077c-.18.32-.28.694-.28 1.103v19.64c0 .41.1.784.28 1.104l.06.059 11.02-11.02v-.26L1.29 1.018l-.06.059zm12.33 11.968l-2.48-2.48L1.62 21.05c.34.33.82.52 1.34.52.48 0 .93-.16 1.31-.38l9.29-5.265zm0-2.09L4.27 2.81c-.38-.22-.83-.38-1.31-.38-.52 0-1 .19-1.34.52l9.46 10.485 2.48-2.48z"/></svg>`;
+
+export const SVG_DOWNLOAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="proj-btn-icon proj-btn-icon-dl" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+
+export const SVG_GITHUB = `<svg viewBox="0 0 24 24" fill="currentColor" class="proj-btn-icon proj-btn-icon-gh" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>`;
+
+export function renderProjectActionButtons(p: any): string {
+  const buttons: string[] = [];
+  const isPlayUrl = (url?: string) => Boolean(url && (url.includes('play.google.com') || url.includes('market://')));
+  const isPlayNote = (note?: string) => Boolean(note && /google\s*play|play\s*store/i.test(note));
+
+  let playStoreHref: string | null = null;
+  if (p.playStoreUrl) {
+    playStoreHref = p.playStoreUrl;
+  } else if (isPlayUrl(p.downloadUrl) || (p.downloadUrl && isPlayNote(p.downloadNote))) {
+    playStoreHref = p.downloadUrl;
+  } else if (isPlayUrl(p.liveUrl)) {
+    playStoreHref = p.liveUrl;
+  }
+
+  let webHref: string | null = null;
+  if (p.liveUrl && p.liveUrl !== playStoreHref && !isPlayUrl(p.liveUrl)) {
+    webHref = p.liveUrl;
+  }
+
+  let dlHref: string | null = null;
+  if (p.downloadUrl && p.downloadUrl !== playStoreHref) {
+    dlHref = p.downloadUrl;
+  }
+
+  const ghHref = p.sourceUrl || p.githubUrl || null;
+
+  if (webHref) {
+    buttons.push(
+      `<a href="${sanitizeUrl(webHref)}" target="_blank" rel="noopener" class="proj-link-btn btn-web" title="Open Web App / Live Demo" aria-label="Open Web App">${SVG_WEB}</a>`
+    );
+  }
+
+  if (playStoreHref) {
+    buttons.push(
+      `<a href="${sanitizeUrl(playStoreHref)}" target="_blank" rel="noopener" class="proj-link-btn btn-playstore" title="Get it on Google Play" aria-label="Get it on Google Play">${SVG_PLAY}</a>`
+    );
+  }
+
+  if (dlHref) {
+    buttons.push(
+      `<a href="${sanitizeUrl(dlHref)}" target="_blank" rel="noopener" class="proj-link-btn btn-download" title="Download Application" aria-label="Download Application">${SVG_DOWNLOAD}</a>`
+    );
+  }
+
+  if (ghHref && ghHref !== webHref) {
+    buttons.push(
+      `<a href="${sanitizeUrl(ghHref)}" target="_blank" rel="noopener" class="proj-link-btn btn-github" title="View Source on GitHub" aria-label="View Source on GitHub">${SVG_GITHUB}</a>`
+    );
+  }
+
+  return buttons.join('');
+}
+
 export function renderBlock(block: CmsBlock): string {
   if (!block || !block.isVisible) return '';
 
@@ -256,16 +317,7 @@ export function renderBlock(block: CmsBlock): string {
                 <div class="proj-num-big">${escapeHtml(p.num || '01')}</div>
               </div>
               <div class="proj-aside-actions">
-                ${
-                  p.liveUrl
-                    ? `<a href="${sanitizeUrl(p.liveUrl)}" target="_blank" rel="noopener" class="proj-link-btn" title="Open Live Demo">&#x2197;</a>`
-                    : ''
-                }
-                ${
-                  p.downloadUrl
-                    ? `<a href="${sanitizeUrl(p.downloadUrl)}" class="proj-link-btn" title="Download">&#x2193;</a>`
-                    : ''
-                }
+                ${renderProjectActionButtons(p)}
               </div>
               ${p.downloadNote ? `<div class="dl-note">${escapeHtml(p.downloadNote)}</div>` : ''}
             </div>

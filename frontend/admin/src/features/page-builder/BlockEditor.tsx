@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, ArrowUp, ArrowDown, UploadCloud, Image, X, Loader2 } from 'lucide-react';
+import { Trash2, Plus, ArrowUp, ArrowDown, UploadCloud, Image, X, Loader2, ExternalLink, Play, Download, Github } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface BlockEditorProps {
@@ -910,6 +910,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                     points: ['Engineered responsive interface and high-performance backend.'],
                     liveUrl: '',
                     sourceUrl: '',
+                    playStoreUrl: '',
+                    downloadUrl: '',
+                    downloadNote: '',
                     featured: true,
                   },
                 ];
@@ -1187,7 +1190,13 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                 <div className="cms-form-row">
                   <div className="cms-form-group">
-                    <label className="cms-label">Live Demo URL</label>
+                    <label className="cms-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <ExternalLink size={13} style={{ color: '#ffc84a' }} />
+                      Live Web App URL
+                      <span style={{ fontSize: '11px', color: '#ffc84a', fontWeight: 'normal', opacity: 0.85 }}>
+                        (Web Link Icon)
+                      </span>
+                    </label>
                     <input
                       type="text"
                       className="cms-input"
@@ -1201,7 +1210,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                     />
                   </div>
                   <div className="cms-form-group">
-                    <label className="cms-label">Source Code / GitHub URL</label>
+                    <label className="cms-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Github size={13} style={{ color: '#a78bfa' }} />
+                      Source Code / GitHub URL
+                    </label>
                     <input
                       type="text"
                       className="cms-input"
@@ -1219,7 +1231,30 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                 <div className="cms-form-row">
                   <div className="cms-form-group">
-                    <label className="cms-label">Download URL (Optional)</label>
+                    <label className="cms-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Play size={13} style={{ color: '#00d4b4', fill: '#00d4b4' }} />
+                      Google Play Store URL
+                      <span style={{ fontSize: '11px', color: '#00d4b4', fontWeight: 'normal', opacity: 0.85 }}>
+                        (Play Store Icon)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      className="cms-input"
+                      placeholder="https://play.google.com/store/apps/details?id=..."
+                      value={proj.playStoreUrl || ''}
+                      onChange={(e) => {
+                        const next = [...projects];
+                        next[idx].playStoreUrl = e.target.value;
+                        updateContent('projects', next);
+                      }}
+                    />
+                  </div>
+                  <div className="cms-form-group">
+                    <label className="cms-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Download size={13} style={{ color: '#38bdf8' }} />
+                      Direct Download URL (Optional)
+                    </label>
                     <input
                       type="text"
                       className="cms-input"
@@ -1232,12 +1267,15 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                       }}
                     />
                   </div>
+                </div>
+
+                <div className="cms-form-row">
                   <div className="cms-form-group">
-                    <label className="cms-label">Download Note</label>
+                    <label className="cms-label">Download / App Store Note</label>
                     <input
                       type="text"
                       className="cms-input"
-                      placeholder="Windows 10/11 x64 installer"
+                      placeholder="e.g. Google Play Link or APK available on request"
                       value={proj.downloadNote || ''}
                       onChange={(e) => {
                         const next = [...projects];

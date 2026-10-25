@@ -219,6 +219,7 @@ export const ProjectItemSchema = z.object({
   downloadNote: z.string().nullish(),
   appIcon: z.string().nullish(),
   iconUrl: z.string().nullish(),
+  playStoreUrl: z.string().nullish(),
 }).transform((p) => ({
   ...p,
   id: p.id || `proj-${Date.now()}`,
@@ -230,6 +231,7 @@ export const ProjectItemSchema = z.object({
   liveUrl: p.liveUrl || undefined,
   sourceUrl: p.sourceUrl || undefined,
   downloadUrl: p.downloadUrl || undefined,
+  playStoreUrl: p.playStoreUrl || undefined,
   aiBadge: p.aiBadge || undefined,
   platformBadge: p.platformBadge || undefined,
   downloadNote: p.downloadNote || undefined,
