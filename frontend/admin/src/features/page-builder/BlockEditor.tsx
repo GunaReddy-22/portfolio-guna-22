@@ -1,5 +1,6 @@
-import React from 'react';
-import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trash2, Plus, ArrowUp, ArrowDown, UploadCloud, Image, X, Loader2 } from 'lucide-react';
+import { api } from '../../lib/api';
 
 interface BlockEditorProps {
   section: any;
@@ -8,6 +9,39 @@ interface BlockEditorProps {
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) => {
   const content = section.content || {};
+  const [uploadingProjIdx, setUploadingProjIdx] = useState<number | null>(null);
+
+  const handleUploadAppIcon = async (idx: number, file: File, currentProjects: any[]) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WebP, etc.).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit.');
+      return;
+    }
+    try {
+      setUploadingProjIdx(idx);
+      const alt = `${currentProjects[idx]?.name || 'project'}-icon`;
+      const res = await api.uploadMedia(file, alt);
+      const uploadedUrl = res?.data?.url || res?.url;
+      if (!uploadedUrl) throw new Error('Cloudinary upload completed but no URL was returned.');
+
+      const next = [...currentProjects];
+      next[idx] = {
+        ...next[idx],
+        appIcon: uploadedUrl,
+        iconUrl: uploadedUrl,
+      };
+      updateContent('projects', next);
+    } catch (err: any) {
+      console.error('Cloudinary upload error:', err);
+      alert(`Failed to upload to Cloudinary: ${err.message || 'Storage error'}`);
+    } finally {
+      setUploadingProjIdx(null);
+    }
+  };
 
   const updateContent = (field: string, value: any) => {
     onChange({
@@ -1019,6 +1053,92 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                         updateContent('projects', next);
                       }}
                     />
+                  </div>
+                </div>
+
+                {/* App Icon Upload & Preview (Cloudinary) */}
+                <div className="cms-form-group" style={{ background: 'rgba(255, 200, 74, 0.03)', border: '1px dashed rgba(255, 200, 74, 0.25)', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <label className="cms-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--cms-amber)' }}>
+                      <Image size={14} /> App Icon (Optional · Displays on Right Side)
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--cms-text-muted)' }}>
+                      Durable Cloudinary Storage
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                    {(proj.appIcon || proj.iconUrl) ? (
+                      <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,200,74,0.4)', background: '#0a0d18', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                        <img
+                          src={proj.appIcon || proj.iconUrl}
+                          alt="App icon preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ width: '56px', height: '56px', borderRadius: '14px', border: '1px dashed rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cms-text-muted)', flexShrink: 0 }}>
+                        <Image size={20} />
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '220px' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <label className={`cms-btn cms-btn-sm ${uploadingProjIdx === idx ? 'cms-btn-secondary' : 'cms-btn-primary'}`} style={{ cursor: uploadingProjIdx === idx ? 'not-allowed' : 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {uploadingProjIdx === idx ? (
+                            <>
+                              <Loader2 size={13} style={{ animation: 'cmsOrbitSpin 1s linear infinite' }} /> Uploading to Cloudinary...
+                            </>
+                          ) : (
+                            <>
+                              <UploadCloud size={13} /> {proj.appIcon || proj.iconUrl ? 'Replace Icon via Cloudinary' : 'Upload Icon via Cloudinary'}
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/webp, image/gif, image/x-icon"
+                            style={{ display: 'none' }}
+                            disabled={uploadingProjIdx === idx}
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                handleUploadAppIcon(idx, e.target.files[0], projects);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {(proj.appIcon || proj.iconUrl) && (
+                          <button
+                            type="button"
+                            className="cms-btn cms-btn-secondary cms-btn-sm"
+                            style={{ color: 'var(--cms-danger)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            onClick={() => {
+                              const next = [...projects];
+                              next[idx].appIcon = '';
+                              next[idx].iconUrl = '';
+                              updateContent('projects', next);
+                            }}
+                          >
+                            <X size={13} /> Remove Icon
+                          </button>
+                        )}
+                      </div>
+
+                      <input
+                        type="text"
+                        className="cms-input"
+                        style={{ fontSize: '12px', padding: '5px 8px' }}
+                        placeholder="Or paste Cloudinary URL (https://res.cloudinary.com/...)"
+                        value={proj.appIcon || proj.iconUrl || ''}
+                        onChange={(e) => {
+                          const next = [...projects];
+                          next[idx].appIcon = e.target.value;
+                          next[idx].iconUrl = e.target.value;
+                          updateContent('projects', next);
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 

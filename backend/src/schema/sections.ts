@@ -217,6 +217,8 @@ export const ProjectItemSchema = z.object({
     type: z.enum(['android', 'desktop', 'web']).nullish().default('web'),
   }).nullish(),
   downloadNote: z.string().nullish(),
+  appIcon: z.string().nullish(),
+  iconUrl: z.string().nullish(),
 }).transform((p) => ({
   ...p,
   id: p.id || `proj-${Date.now()}`,
@@ -231,6 +233,8 @@ export const ProjectItemSchema = z.object({
   aiBadge: p.aiBadge || undefined,
   platformBadge: p.platformBadge || undefined,
   downloadNote: p.downloadNote || undefined,
+  appIcon: p.appIcon || p.iconUrl || undefined,
+  iconUrl: p.appIcon || p.iconUrl || undefined,
 }));
 
 export const ProjectsBlockSchema = BaseBlockSchema.extend({

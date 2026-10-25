@@ -247,17 +247,26 @@ export function renderBlock(block: CmsBlock): string {
               </ul>
             </div>
             <div class="proj-aside">
-              <div class="proj-num-big">${escapeHtml(p.num || '01')}</div>
-              ${
-                p.liveUrl
-                  ? `<a href="${sanitizeUrl(p.liveUrl)}" target="_blank" rel="noopener" class="proj-link-btn" title="Open Live Demo">&#x2197;</a>`
-                  : ''
-              }
-              ${
-                p.downloadUrl
-                  ? `<a href="${sanitizeUrl(p.downloadUrl)}" class="proj-link-btn" title="Download">&#x2193;</a>`
-                  : ''
-              }
+              <div class="proj-aside-head">
+                ${
+                  (p.appIcon || p.iconUrl)
+                    ? `<div class="proj-icon-wrap"><img src="${sanitizeUrl(p.appIcon || p.iconUrl)}" alt="${escapeAttr(p.name || p.title || 'App')} icon" class="proj-app-icon" loading="lazy" /></div>`
+                    : ''
+                }
+                <div class="proj-num-big">${escapeHtml(p.num || '01')}</div>
+              </div>
+              <div class="proj-aside-actions">
+                ${
+                  p.liveUrl
+                    ? `<a href="${sanitizeUrl(p.liveUrl)}" target="_blank" rel="noopener" class="proj-link-btn" title="Open Live Demo">&#x2197;</a>`
+                    : ''
+                }
+                ${
+                  p.downloadUrl
+                    ? `<a href="${sanitizeUrl(p.downloadUrl)}" class="proj-link-btn" title="Download">&#x2193;</a>`
+                    : ''
+                }
+              </div>
               ${p.downloadNote ? `<div class="dl-note">${escapeHtml(p.downloadNote)}</div>` : ''}
             </div>
           </div>
