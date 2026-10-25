@@ -363,7 +363,8 @@ export function renderBlock(block: CmsBlock): string {
 
       const previewImageUrl = sanitizeUrl(c.previewImageUrl, '/assets/resume-preview.png');
       const previewImageAlt = escapeAttr(c.previewImageAlt || 'Resume preview');
-      const downloadPdfUrl = sanitizeUrl(c.downloadPdfUrl || c.fileUrl, '/assets/resume.pdf');
+      let sideBody = (c.sideBody || '') as string;
+      sideBody = sideBody.replace(/\s*or download a copy\.?/gi, '.');
 
       return `
         <section id="resume" class="section">
@@ -384,13 +385,10 @@ export function renderBlock(block: CmsBlock): string {
               </div>
               <div class="reveal d1">
                 <div class="resume-side-title">${escapeHtml(c.sideTitle || '')}</div>
-                <p class="resume-side-body">${escapeHtml(c.sideBody || '')}</p>
+                <p class="resume-side-body">${escapeHtml(sideBody)}</p>
                 <div class="resume-btns">
                   <a href="${previewImageUrl}" target="_blank" rel="noopener" class="btn-primary">${escapeHtml(
-        c.openFullSizeLabel || 'Open Full Size →'
-      )}</a>
-                  <a href="${downloadPdfUrl}" download class="btn-secondary">${escapeHtml(
-        c.downloadButtonLabel || c.downloadLabel || 'Download PDF'
+        c.openFullSizeLabel || 'View in Full Window'
       )}</a>
                 </div>
                 <div class="resume-highlights">${highlightsHtml}</div>

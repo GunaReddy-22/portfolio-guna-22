@@ -1498,31 +1498,11 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
           <div className="cms-form-row">
             <div className="cms-form-group">
-              <label className="cms-label">Download PDF URL</label>
+              <label className="cms-label">Open Full Size Button Label</label>
               <input
                 type="text"
                 className="cms-input"
-                placeholder="/assets/resume.pdf"
-                value={content.downloadPdfUrl || content.fileUrl || ''}
-                onChange={(e) => updateContent('downloadPdfUrl', e.target.value)}
-              />
-            </div>
-            <div className="cms-form-group">
-              <label className="cms-label">Download Button Label</label>
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="Download PDF"
-                value={content.downloadButtonLabel || content.downloadLabel || ''}
-                onChange={(e) => updateContent('downloadButtonLabel', e.target.value)}
-              />
-            </div>
-            <div className="cms-form-group">
-              <label className="cms-label">Open Full Size Label</label>
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="Open Full Size →"
+                placeholder="VIEW IN FULL WINDOW"
                 value={content.openFullSizeLabel || ''}
                 onChange={(e) => updateContent('openFullSizeLabel', e.target.value)}
               />

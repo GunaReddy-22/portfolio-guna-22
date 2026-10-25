@@ -352,8 +352,6 @@ export const PageBuilder: React.FC = () => {
         frameLabel: 'RESUME_KGUNA.PDF',
         sideTitle: 'One-page snapshot of everything above.',
         sideBody: 'My current resume covering experience, shipped projects, and skills.',
-        downloadPdfUrl: '/assets/resume.pdf',
-        downloadButtonLabel: 'DOWNLOAD FULL RESUME',
         openFullSizeLabel: 'VIEW IN FULL WINDOW',
         highlights: [{ icon: 'briefcase', text: 'Full Stack Intern @ ZenithIndia' }],
       },

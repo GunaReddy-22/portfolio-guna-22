@@ -316,10 +316,7 @@ export const BASELINE_BLOCKS: CmsBlock[] = [
       previewImageAlt: 'Guna Sai Venkata Reddy Kovvuri — Resume',
       sideTitle: 'One-page snapshot of everything above.',
       sideBody:
-        'This is my current resume — full stack & backend focused, covering my experience at ZenithIndia, the five shipped projects, technical skill set, and education. Click below to view it full-size or download a copy.',
-      downloadPdfUrl:
-        'https://res.cloudinary.com/dzlqe2lvf/image/upload/v1792591891/guna-cms/portfolio/rd0h174mbxmy59fxpcbg.png',
-      downloadButtonLabel: 'Download Full Resume',
+        'This is my current resume — full stack & backend focused, covering my experience at ZenithIndia, the five shipped projects, technical skill set, and education. Click below to view it full-size.',
       openFullSizeLabel: 'View in Full Window',
       highlights: [
         {

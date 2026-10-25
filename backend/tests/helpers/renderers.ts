@@ -380,10 +380,7 @@ export function renderBlock(block: CmsBlock): string {
                 <p class="resume-side-body">${escapeHtml(c.sideBody || '')}</p>
                 <div class="resume-btns">
                   <a href="${previewImageUrl}" target="_blank" rel="noopener" class="btn-primary">${escapeHtml(
-        c.openFullSizeLabel || 'Open Full Size →'
-      )}</a>
-                  <a href="${downloadPdfUrl}" download class="btn-secondary">${escapeHtml(
-        c.downloadButtonLabel || c.downloadLabel || 'Download PDF'
+        c.openFullSizeLabel || 'View in Full Window'
       )}</a>
                 </div>
                 <div class="resume-highlights">${highlightsHtml}</div>
