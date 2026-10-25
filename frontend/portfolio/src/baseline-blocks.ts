@@ -24,7 +24,7 @@ export const BASELINE_BLOCKS: CmsBlock[] = [
         { number: '8.04', suffix: '', label: 'CGPA' },
       ],
       floatingTags: ['Node.js', 'PostgreSQL', 'React.js', 'React Native', 'RAG / LLM'],
-      photoUrl: 'https://res.cloudinary.com/dzlqe2lvf/image/upload/v1792591876/guna-cms/portfolio/aes9l9kapokflfrywekr.jpg',
+      photoUrl: '/assets/WhatsApp Image 2026-10-25 at 13.20.31.jpeg',
       photoAlt: 'Guna Sai Venkata Reddy Kovvuri',
       badge: {
         enabled: true,

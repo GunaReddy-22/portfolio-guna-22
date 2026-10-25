@@ -103,7 +103,7 @@ export function renderBlock(block: CmsBlock): string {
         .map((m: string) => `<span>${escapeHtml(m)}</span>`)
         .join('');
 
-      const photoUrl = sanitizeUrl(c.photoUrl, '/assets/hero-portrait.jpg');
+      const photoUrl = sanitizeUrl(c.photoUrl, '/assets/WhatsApp Image 2026-10-25 at 13.20.31.jpeg');
       const photoAlt = escapeAttr(c.photoAlt || 'Hero portrait');
 
       return `
