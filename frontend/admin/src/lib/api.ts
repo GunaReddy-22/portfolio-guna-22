@@ -12,8 +12,14 @@ export function resolveApiUrl(endpoint: string): string {
 }
 
 export function getPublicSiteUrl(): string {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
-    return 'http://localhost:3000';
+  if (import.meta.env.VITE_PUBLIC_SITE_URL) {
+    return import.meta.env.VITE_PUBLIC_SITE_URL.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.localhost')) {
+      return 'http://localhost:3000';
+    }
   }
   return 'https://gunasai.in';
 }
@@ -21,6 +27,14 @@ export function getPublicSiteUrl(): string {
 export function resolvePreviewUrl(previewUrl?: string, token?: string): string {
   const publicBase = getPublicSiteUrl();
   if (previewUrl && previewUrl.startsWith('http')) {
+    try {
+      const parsed = new URL(previewUrl);
+      if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        return `${publicBase}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+    } catch {
+      // fallback
+    }
     return previewUrl;
   }
   if (previewUrl) {

@@ -10,8 +10,9 @@ import {
   AlertCircle,
   CheckCircle,
   X,
+  ExternalLink,
 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, getPublicSiteUrl } from '../../lib/api';
 import { CmsLoadingState } from '../../components/CmsLoadingState';
 
 export const PagesList: React.FC = () => {
@@ -89,7 +90,7 @@ export const PagesList: React.FC = () => {
   const handlePreview = async (pageId: string) => {
     try {
       const res = await api.getPreviewToken(pageId);
-      const targetUrl = res.fullPreviewUrl || res.previewUrl || `https://gunasai.in/?preview=true&token=${res.token}`;
+      const targetUrl = res.fullPreviewUrl || res.previewUrl || `${getPublicSiteUrl()}/?preview=true&token=${res.token}`;
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } catch (err: any) {
       alert(`Preview failed: ${err?.message || 'Could not generate preview token'}`);
@@ -115,9 +116,31 @@ export const PagesList: React.FC = () => {
       </div>
 
       {successMsg && (
-        <div className="cms-alert cms-alert-success">
-          <CheckCircle size={18} style={{ flexShrink: 0 }} />
-          <div>{successMsg}</div>
+        <div
+          className="cms-alert cms-alert-success"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle size={18} style={{ flexShrink: 0 }} />
+            <span>{successMsg}</span>
+          </div>
+          <a
+            href={getPublicSiteUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cms-btn cms-btn-secondary cms-btn-sm"
+            style={{ textDecoration: 'none' }}
+          >
+            <ExternalLink size={14} />
+            <span>Visit Live Site</span>
+          </a>
         </div>
       )}
 

@@ -11,7 +11,7 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, getPublicSiteUrl } from '../../lib/api';
 
 import { CmsLoadingState } from '../../components/CmsLoadingState';
 
@@ -126,13 +126,13 @@ export const Overview: React.FC = () => {
             <span>Open Visual Builder</span>
           </Link>
           <a
-            href="/"
+            href={getPublicSiteUrl()}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="cms-btn cms-btn-secondary cms-btn-sm"
           >
             <ExternalLink size={15} />
-            <span>Visit Site</span>
+            <span>Visit Live Site</span>
           </a>
         </div>
       </div>
