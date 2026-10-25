@@ -640,6 +640,47 @@ function setupInteractiveBehaviors() {
     },
     { passive: true }
   );
+
+  // Live Announcement Expiration & Visibility Monitor
+  setupAnnouncementExpiryMonitor();
+}
+
+function setupAnnouncementExpiryMonitor() {
+  const checkExpiringAnnouncements = () => {
+    const pills = document.querySelectorAll<HTMLElement>('.hero-pill[data-expires-at]');
+    const now = Date.now();
+    pills.forEach((pill) => {
+      const expiresAt = pill.getAttribute('data-expires-at');
+      if (!expiresAt) return;
+      const expTime = new Date(expiresAt).getTime();
+      if (!isNaN(expTime) && expTime <= now) {
+        const action = pill.getAttribute('data-expiry-action') || 'hide';
+        if (action === 'hide') {
+          pill.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          pill.style.opacity = '0';
+          pill.style.transform = 'translateY(-8px)';
+          setTimeout(() => {
+            pill.style.display = 'none';
+          }, 600);
+        } else {
+          pill.classList.remove('hero-pill-announcement');
+          pill.classList.remove(
+            'announcement-style-amber',
+            'announcement-style-neon-cyan',
+            'announcement-style-emerald',
+            'announcement-style-crimson',
+            'announcement-style-purple'
+          );
+          const tag = pill.querySelector('.pill-announcement-tag');
+          if (tag) tag.remove();
+          pill.removeAttribute('data-expires-at');
+        }
+      }
+    });
+  };
+
+  checkExpiringAnnouncements();
+  setInterval(checkExpiringAnnouncements, 15000);
 }
 
 // ----------------------------------------------------------------------------

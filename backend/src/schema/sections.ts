@@ -38,7 +38,15 @@ export const BaseBlockSchema = z.object({
 export const HeroBlockSchema = BaseBlockSchema.extend({
   type: z.literal('hero'),
   content: z.object({
+    pillVisible: z.boolean().nullish().default(true),
+    showPill: z.boolean().nullish().default(true),
     pillText: z.string().nullish().default('Full Stack Developer Intern @ ZenithIndia'),
+    pillLink: z.string().nullish(),
+    pillIsAnnouncement: z.boolean().nullish().default(false),
+    pillAnnouncementTag: z.string().nullish().default('ANNOUNCEMENT'),
+    pillAnnouncementStyle: z.string().nullish().default('amber'),
+    pillAnnouncementExpiresAt: z.string().nullish(),
+    pillAnnouncementExpiryAction: z.enum(['hide', 'revert']).nullish().default('hide'),
     eyebrowText: z.string().nullish().default('Full-Stack Developer · AI Builder'),
     headlineNameFirst: z.string().nullish().default('GUNA'),
     headlineNameMiddle: z.string().nullish().default('Sai Venkata Reddy'),

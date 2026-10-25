@@ -99,6 +99,66 @@ export function renderBlock(block: CmsBlock): string {
       const photoUrl = sanitizeUrl(c.photoUrl, '/assets/hero-portrait.jpg');
       const photoAlt = escapeAttr(c.photoAlt || 'Hero portrait');
 
+      // Status Pill / Announcement Banner
+      const isPillVisible = c.pillVisible !== false && c.showPill !== false && Boolean(c.pillText && String(c.pillText).trim());
+      let pillHtml = '';
+
+      if (isPillVisible) {
+        const isAnnouncement = Boolean(c.pillIsAnnouncement);
+        let isExpired = false;
+        let expiresAtIso = '';
+
+        if (isAnnouncement && c.pillAnnouncementExpiresAt) {
+          try {
+            const exp = new Date(c.pillAnnouncementExpiresAt);
+            if (!isNaN(exp.getTime())) {
+              expiresAtIso = exp.toISOString();
+              if (exp.getTime() <= Date.now()) {
+                isExpired = true;
+              }
+            }
+          } catch {
+            // ignore date error
+          }
+        }
+
+        const expiryAction = c.pillAnnouncementExpiryAction || 'hide';
+
+        if (isAnnouncement && isExpired && expiryAction === 'hide') {
+          pillHtml = '';
+        } else {
+          const treatAsAnnouncement = isAnnouncement && !isExpired;
+          const announcementStyle = c.pillAnnouncementStyle || 'amber';
+          const announcementTag = c.pillAnnouncementTag || 'ANNOUNCEMENT';
+          const rawText = String(c.pillText || '').trim();
+          const pillText = escapeHtml(rawText);
+          const pillLink = c.pillLink ? sanitizeUrl(c.pillLink) : '';
+
+          const pillClasses = [
+            'hero-pill',
+            treatAsAnnouncement ? 'hero-pill-announcement' : '',
+            treatAsAnnouncement ? `announcement-style-${announcementStyle}` : '',
+            pillLink ? 'hero-pill-link' : '',
+          ].filter(Boolean).join(' ');
+
+          const tagHtml = treatAsAnnouncement && announcementTag
+            ? `<span class="pill-announcement-tag"><span class="pill-announcement-icon" aria-hidden="true">📢</span>${escapeHtml(announcementTag)}</span>`
+            : '';
+
+          const pulseHtml = `<span class="pulse"></span>`;
+          const contentInner = `${pulseHtml}${tagHtml}<span class="pill-label-text">${pillText}</span>`;
+          const expiryDataAttr = expiresAtIso ? ` data-expires-at="${escapeAttr(expiresAtIso)}"` : '';
+          const actionDataAttr = expiresAtIso ? ` data-expiry-action="${escapeAttr(expiryAction)}"` : '';
+
+          if (pillLink) {
+            const isExternal = pillLink.startsWith('http://') || pillLink.startsWith('https://');
+            pillHtml = `<a href="${pillLink}" class="${pillClasses}"${expiryDataAttr}${actionDataAttr}${isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>${contentInner}</a>`;
+          } else {
+            pillHtml = `<div class="${pillClasses}"${expiryDataAttr}${actionDataAttr}>${contentInner}</div>`;
+          }
+        }
+      }
+
       return `
         <section id="hero">
           <div class="orb1 hero-orb"></div>
@@ -108,7 +168,7 @@ export function renderBlock(block: CmsBlock): string {
           ${tagsHtml}
           <div class="hero-inner">
             <div class="hero-text">
-              <div class="hero-pill"><span class="pulse"></span>${escapeHtml(c.pillText || '')}</div>
+              ${pillHtml}
               <div class="hero-eyebrow"><span class="eyebrow-dash"></span>${escapeHtml(c.eyebrowText || '')}</div>
               <h1 class="hero-name">
                 ${escapeHtml(c.headlineNameFirst || '')}<span class="name-serif">${escapeHtml(

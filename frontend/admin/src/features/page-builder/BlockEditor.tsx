@@ -1,5 +1,26 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, ArrowUp, ArrowDown, UploadCloud, Image, X, Loader2, ExternalLink, Play, Download, Github } from 'lucide-react';
+import {
+  Trash2,
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  UploadCloud,
+  Image,
+  X,
+  Loader2,
+  ExternalLink,
+  Play,
+  Download,
+  Github,
+  Megaphone,
+  Sparkles,
+  Clock,
+  Calendar,
+  Eye,
+  EyeOff,
+  Check,
+  AlertCircle,
+} from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface BlockEditorProps {
@@ -66,6 +87,91 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
     });
   };
 
+  const formatToDatetimeLocal = (isoStr?: string | null): string => {
+    if (!isoStr) return '';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const year = d.getFullYear();
+      const month = pad(d.getMonth() + 1);
+      const day = pad(d.getDate());
+      const hours = pad(d.getHours());
+      const mins = pad(d.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${mins}`;
+    } catch {
+      return '';
+    }
+  };
+
+  const getAnnouncementStatusInfo = (expiresAtIso?: string | null, expiryAction?: string) => {
+    if (!expiresAtIso) {
+      return {
+        status: 'indefinite',
+        badge: '♾️ Active (No Expiry)',
+        color: '#38bdf8',
+        bg: 'rgba(56, 189, 248, 0.12)',
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        message: 'This announcement has no expiration date and will stay highlighted indefinitely until turned off.',
+      };
+    }
+    const expTime = new Date(expiresAtIso).getTime();
+    if (isNaN(expTime)) {
+      return {
+        status: 'invalid',
+        badge: '⚠️ Invalid Date',
+        color: '#f87171',
+        bg: 'rgba(239, 68, 68, 0.12)',
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        message: 'The expiration timestamp could not be parsed. Click a duration button below to reset.',
+      };
+    }
+    const diffMs = expTime - Date.now();
+    const formattedDate = new Date(expiresAtIso).toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    if (diffMs <= 0) {
+      return {
+        status: 'expired',
+        badge: '🔴 Expired',
+        color: '#f87171',
+        bg: 'rgba(239, 68, 68, 0.12)',
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        message: `Announcement expired on ${formattedDate}. On the live site, it is currently ${expiryAction === 'revert' ? 'reverted to standard styling' : 'hidden'}.`,
+      };
+    }
+
+    const totalMins = Math.floor(diffMs / 60000);
+    const totalHours = Math.floor(totalMins / 60);
+    const days = Math.floor(totalHours / 24);
+    const remHours = totalHours % 24;
+    const remMins = totalMins % 60;
+
+    let countdownStr = '';
+    if (days > 0) {
+      countdownStr = `${days} day${days > 1 ? 's' : ''}, ${remHours} hr${remHours !== 1 ? 's' : ''}`;
+    } else if (remHours > 0) {
+      countdownStr = `${remHours} hr${remHours !== 1 ? 's' : ''}, ${remMins} min${remMins !== 1 ? 's' : ''}`;
+    } else {
+      countdownStr = `${remMins} min${remMins !== 1 ? 's' : ''}`;
+    }
+
+    return {
+      status: 'active',
+      badge: `🟢 Active · ${countdownStr} remaining`,
+      color: '#34d399',
+      bg: 'rgba(16, 185, 129, 0.12)',
+      borderColor: 'rgba(16, 185, 129, 0.3)',
+      message: `Active until ${formattedDate}. Will automatically ${expiryAction === 'revert' ? 'revert to a standard pill' : 'hide completely'} when time expires.`,
+    };
+  };
+
   switch (section.type) {
     case 'hero': {
       const stats = content.stats || [
@@ -84,31 +190,566 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
         ? content.marqueeItems.join(', ')
         : content.marqueeItems || '';
 
+      const isPillVisible = content.pillVisible !== false && content.showPill !== false;
+      const isAnnouncement = Boolean(content.pillIsAnnouncement);
+      const announcementStyle = content.pillAnnouncementStyle || 'amber';
+      const announcementTag = content.pillAnnouncementTag || 'ANNOUNCEMENT';
+      const expiryAction = content.pillAnnouncementExpiryAction || 'hide';
+      const expiryStatus = getAnnouncementStatusInfo(content.pillAnnouncementExpiresAt, expiryAction);
+
+      const colorThemes: Record<string, { label: string; color: string; bg: string; border: string; glow: string }> = {
+        amber: {
+          label: 'Amber Flame',
+          color: '#ffc84a',
+          bg: 'rgba(255, 191, 0, 0.15)',
+          border: 'rgba(255, 191, 0, 0.6)',
+          glow: 'rgba(255, 191, 0, 0.35)',
+        },
+        'neon-cyan': {
+          label: 'Neon Cyan',
+          color: '#38bdf8',
+          bg: 'rgba(6, 182, 212, 0.15)',
+          border: 'rgba(6, 182, 212, 0.6)',
+          glow: 'rgba(6, 182, 212, 0.35)',
+        },
+        emerald: {
+          label: 'Emerald Pulse',
+          color: '#34d399',
+          bg: 'rgba(16, 185, 129, 0.15)',
+          border: 'rgba(16, 185, 129, 0.6)',
+          glow: 'rgba(16, 185, 129, 0.35)',
+        },
+        crimson: {
+          label: 'Crimson Alert',
+          color: '#fb7185',
+          bg: 'rgba(244, 63, 94, 0.15)',
+          border: 'rgba(244, 63, 94, 0.6)',
+          glow: 'rgba(244, 63, 94, 0.35)',
+        },
+        purple: {
+          label: 'Royal Purple',
+          color: '#c084fc',
+          bg: 'rgba(168, 85, 247, 0.15)',
+          border: 'rgba(168, 85, 247, 0.6)',
+          glow: 'rgba(168, 85, 247, 0.35)',
+        },
+      };
+
+      const activeColorTheme = colorThemes[announcementStyle] || colorThemes.amber;
+
+      const tagSuggestions = [
+        '📢 ANNOUNCEMENT',
+        '✨ NEW',
+        '🚀 UPDATE',
+        '💼 OPEN TO WORK',
+        '🎯 FEATURED',
+        '🔥 HOT',
+      ];
+
       return (
         <div>
           <h4 style={{ margin: '0 0 1rem 0', color: 'var(--cms-amber)' }}>Hero Section Content</h4>
 
-          <div className="cms-form-row">
-            <div className="cms-form-group">
-              <label className="cms-label">Status Pill Text</label>
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="Full Stack Developer Intern @ ZenithIndia"
-                value={content.pillText || ''}
-                onChange={(e) => updateContent('pillText', e.target.value)}
-              />
+          {/* Status Pill & Special Announcement Banner Control Card */}
+          <div
+            className="cms-card"
+            style={{
+              padding: '1.25rem',
+              marginBottom: '1.5rem',
+              border: isAnnouncement ? '1px solid rgba(245, 158, 11, 0.45)' : '1px solid var(--cms-border)',
+              background: isAnnouncement
+                ? 'linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.6) 100%)'
+                : 'var(--cms-surface)',
+              borderRadius: '10px',
+              boxShadow: isAnnouncement ? '0 4px 20px rgba(245, 158, 11, 0.08)' : 'none',
+            }}
+          >
+            {/* Card Header with Visibility Toggle */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+                paddingBottom: '0.85rem',
+                borderBottom: '1px solid var(--cms-border)',
+                marginBottom: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    background: isPillVisible ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isPillVisible ? 'var(--cms-amber)' : 'var(--cms-text-muted)',
+                  }}
+                >
+                  <Megaphone size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--cms-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    Status Pill &amp; Announcement
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        background: isPillVisible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                        color: isPillVisible ? '#34d399' : '#f87171',
+                        border: `1px solid ${isPillVisible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                      }}
+                    >
+                      {isPillVisible ? 'Visible' : 'Hidden'}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--cms-text-muted)' }}>
+                    Controls the top status badge (e.g. &ldquo;EX-FULL STACK DEVLOPER INTERN @ ZENITHINDIA&rdquo;).
+                  </p>
+                </div>
+              </div>
+
+              {/* Visibility Switch */}
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
+                  cursor: 'pointer',
+                  padding: '0.45rem 0.9rem',
+                  borderRadius: '6px',
+                  background: isPillVisible ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                  border: `1px solid ${isPillVisible ? 'rgba(245, 158, 11, 0.4)' : 'var(--cms-border)'}`,
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  style={{ accentColor: 'var(--cms-amber)', cursor: 'pointer', width: '16px', height: '16px' }}
+                  checked={isPillVisible}
+                  onChange={(e) => {
+                    updateContent('pillVisible', e.target.checked);
+                    updateContent('showPill', e.target.checked);
+                  }}
+                />
+                {isPillVisible ? <Eye size={15} style={{ color: 'var(--cms-amber)' }} /> : <EyeOff size={15} style={{ color: 'var(--cms-text-muted)' }} />}
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isPillVisible ? 'var(--cms-amber)' : 'var(--cms-text-muted)' }}>
+                  {isPillVisible ? 'Show Status Pill' : 'Hide Status Pill'}
+                </span>
+              </label>
             </div>
-            <div className="cms-form-group">
-              <label className="cms-label">Eyebrow Subheading</label>
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="Full-Stack Developer · AI Builder"
-                value={content.eyebrowText || ''}
-                onChange={(e) => updateContent('eyebrowText', e.target.value)}
-              />
-            </div>
+
+            {!isPillVisible ? (
+              <div
+                style={{
+                  padding: '0.9rem 1.1rem',
+                  borderRadius: '6px',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  fontSize: '0.85rem',
+                  color: 'var(--cms-text-muted)',
+                }}
+              >
+                <EyeOff size={18} style={{ color: '#f87171', flexShrink: 0 }} />
+                <span>
+                  This section is currently <strong>HIDDEN</strong> from your live portfolio header. Toggle &ldquo;Show Status Pill&rdquo; above anytime to make it visible again.
+                </span>
+              </div>
+            ) : (
+              <div>
+                {/* Pill Text & Link Input Row */}
+                <div className="cms-form-row">
+                  <div className="cms-form-group" style={{ flex: 1.4 }}>
+                    <label className="cms-label">Status Pill / Announcement Text</label>
+                    <input
+                      type="text"
+                      className="cms-input"
+                      placeholder="e.g. Ex-Full Stack Devloper Intern @ ZenithIndia"
+                      value={content.pillText || ''}
+                      onChange={(e) => updateContent('pillText', e.target.value)}
+                    />
+                  </div>
+                  <div className="cms-form-group" style={{ flex: 1 }}>
+                    <label className="cms-label">Click Link URL (Optional)</label>
+                    <input
+                      type="text"
+                      className="cms-input"
+                      placeholder="e.g. #experience, #projects, or https://..."
+                      value={content.pillLink || ''}
+                      onChange={(e) => updateContent('pillLink', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Announcement Mode Box */}
+                <div
+                  style={{
+                    marginTop: '0.85rem',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    background: isAnnouncement ? 'rgba(245, 158, 11, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1px solid ${isAnnouncement ? 'rgba(245, 158, 11, 0.35)' : 'var(--cms-border)'}`,
+                  }}
+                >
+                  {/* Announcement Toggle */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: isAnnouncement ? '1rem' : 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', userSelect: 'none' }}>
+                      <input
+                        type="checkbox"
+                        style={{ accentColor: 'var(--cms-amber)', width: '16px', height: '16px' }}
+                        checked={isAnnouncement}
+                        onChange={(e) => updateContent('pillIsAnnouncement', e.target.checked)}
+                      />
+                      <span style={{ fontWeight: 600, fontSize: '0.9rem', color: isAnnouncement ? 'var(--cms-amber)' : 'var(--cms-text)' }}>
+                        ✨ Highlight as Special Announcement
+                      </span>
+                    </label>
+
+                    {isAnnouncement && (
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          background: expiryStatus.bg,
+                          color: expiryStatus.color,
+                          border: `1px solid ${expiryStatus.borderColor}`,
+                        }}
+                      >
+                        {expiryStatus.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Announcement Extended Controls */}
+                  {isAnnouncement && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {/* Tag Input & Suggestions */}
+                      <div>
+                        <label className="cms-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span>Announcement Tag / Badge Label</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--cms-text-muted)' }}>Click a chip to apply</span>
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                          {tagSuggestions.map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              className="cms-btn cms-btn-sm"
+                              style={{
+                                padding: '3px 8px',
+                                fontSize: '0.75rem',
+                                background: content.pillAnnouncementTag === tag.replace(/^[^a-zA-Z0-9]+/, '') ? 'var(--cms-amber)' : 'rgba(255, 255, 255, 0.05)',
+                                color: content.pillAnnouncementTag === tag.replace(/^[^a-zA-Z0-9]+/, '') ? '#000' : 'var(--cms-text-muted)',
+                                border: '1px solid var(--cms-border)',
+                              }}
+                              onClick={() => {
+                                const clean = tag.replace(/^[^a-zA-Z0-9]+/, '');
+                                updateContent('pillAnnouncementTag', clean);
+                              }}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          className="cms-input"
+                          placeholder="ANNOUNCEMENT"
+                          value={content.pillAnnouncementTag || ''}
+                          onChange={(e) => updateContent('pillAnnouncementTag', e.target.value)}
+                        />
+                      </div>
+
+                      {/* Highlight Color Theme Selector */}
+                      <div>
+                        <label className="cms-label">Highlight Glow Theme</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
+                          {Object.entries(colorThemes).map(([key, t]) => {
+                            const isSelected = announcementStyle === key;
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => updateContent('pillAnnouncementStyle', key)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                  padding: '0.5rem 0.75rem',
+                                  borderRadius: '6px',
+                                  background: isSelected ? t.bg : 'rgba(255, 255, 255, 0.03)',
+                                  border: `1.5px solid ${isSelected ? t.border : 'var(--cms-border)'}`,
+                                  color: isSelected ? t.color : 'var(--cms-text)',
+                                  cursor: 'pointer',
+                                  fontSize: '0.8rem',
+                                  fontWeight: isSelected ? 600 : 400,
+                                  boxShadow: isSelected ? `0 0 10px ${t.glow}` : 'none',
+                                  transition: 'all 0.2s ease',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    borderRadius: '50%',
+                                    background: t.color,
+                                    boxShadow: `0 0 6px ${t.color}`,
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <span>{t.label}</span>
+                                {isSelected && <Check size={14} style={{ marginLeft: 'auto' }} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Duration & Expiration Controls */}
+                      <div
+                        style={{
+                          padding: '0.85rem',
+                          borderRadius: '6px',
+                          background: 'rgba(0, 0, 0, 0.25)',
+                          border: '1px solid var(--cms-border)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <label className="cms-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <Clock size={15} style={{ color: 'var(--cms-amber)' }} />
+                            <span>Announcement Duration &amp; Expiration Controls</span>
+                          </label>
+                          <span style={{ fontSize: '0.75rem', color: expiryStatus.color, fontWeight: 500 }}>
+                            {expiryStatus.badge}
+                          </span>
+                        </div>
+
+                        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.78rem', color: 'var(--cms-text-muted)' }}>
+                          {expiryStatus.message}
+                        </p>
+
+                        {/* Quick Duration Buttons */}
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cms-text-muted)', display: 'block', marginBottom: '0.35rem' }}>
+                            Quick Duration Presets:
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 1 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +1 Hour
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 24 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +24 Hours (1 Day)
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 3 * 24 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +3 Days
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +7 Days (1 Week)
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +14 Days (2 Weeks)
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              onClick={() => {
+                                const target = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', target.toISOString());
+                              }}
+                            >
+                              +30 Days (1 Month)
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              style={{ color: '#38bdf8' }}
+                              onClick={() => updateContent('pillAnnouncementExpiresAt', null)}
+                            >
+                              ♾️ Always Active (No Expiry)
+                            </button>
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-secondary cms-btn-sm"
+                              style={{ color: '#f87171' }}
+                              onClick={() => {
+                                const past = new Date(Date.now() - 60 * 1000);
+                                updateContent('pillAnnouncementExpiresAt', past.toISOString());
+                              }}
+                            >
+                              Expire Now
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Exact Expiration DateTime & Expiry Action */}
+                        <div className="cms-form-row" style={{ marginBottom: 0 }}>
+                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1.2 }}>
+                            <label className="cms-label" style={{ fontSize: '0.78rem' }}>Exact Expiration Date &amp; Time</label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <input
+                                type="datetime-local"
+                                className="cms-input"
+                                style={{ flex: 1 }}
+                                value={formatToDatetimeLocal(content.pillAnnouncementExpiresAt)}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (!val) {
+                                    updateContent('pillAnnouncementExpiresAt', null);
+                                  } else {
+                                    const d = new Date(val);
+                                    if (!isNaN(d.getTime())) {
+                                      updateContent('pillAnnouncementExpiresAt', d.toISOString());
+                                    }
+                                  }
+                                }}
+                              />
+                              {content.pillAnnouncementExpiresAt && (
+                                <button
+                                  type="button"
+                                  className="cms-btn cms-btn-secondary cms-btn-sm"
+                                  title="Clear expiration (make permanent)"
+                                  onClick={() => updateContent('pillAnnouncementExpiresAt', null)}
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1 }}>
+                            <label className="cms-label" style={{ fontSize: '0.78rem' }}>When Expired Action</label>
+                            <select
+                              className="cms-input"
+                              value={content.pillAnnouncementExpiryAction || 'hide'}
+                              onChange={(e) => updateContent('pillAnnouncementExpiryAction', e.target.value)}
+                            >
+                              <option value="hide">Hide Entire Pill (Recommended)</option>
+                              <option value="revert">Revert to Standard Pill (Keep Text)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Live In-Editor Preview */}
+                      <div
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '8px',
+                          background: 'rgba(0, 0, 0, 0.45)',
+                          border: '1px solid var(--cms-border)',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cms-text-muted)', marginBottom: '0.5rem' }}>
+                          Live Preview on Portfolio:
+                        </div>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 16px',
+                            borderRadius: '100px',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.12em',
+                            fontFamily: 'monospace',
+                            textTransform: 'uppercase',
+                            background: activeColorTheme.bg,
+                            border: `1px solid ${activeColorTheme.border}`,
+                            color: activeColorTheme.color,
+                            boxShadow: `0 0 16px ${activeColorTheme.glow}`,
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '7px',
+                              height: '7px',
+                              borderRadius: '50%',
+                              background: activeColorTheme.color,
+                              boxShadow: `0 0 8px ${activeColorTheme.color}`,
+                            }}
+                          />
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.68rem',
+                              padding: '2px 7px',
+                              borderRadius: '999px',
+                              background: 'rgba(255, 255, 255, 0.15)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              color: '#fff',
+                            }}
+                          >
+                            <span>📢</span>
+                            <span>{content.pillAnnouncementTag || 'ANNOUNCEMENT'}</span>
+                          </span>
+                          <span>{content.pillText || 'Ex-Full Stack Devloper Intern @ ZenithIndia'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="cms-form-group">
+            <label className="cms-label">Eyebrow Subheading</label>
+            <input
+              type="text"
+              className="cms-input"
+              placeholder="Full-Stack Developer · AI Builder"
+              value={content.eyebrowText || ''}
+              onChange={(e) => updateContent('eyebrowText', e.target.value)}
+            />
           </div>
 
           <div className="cms-form-row">
