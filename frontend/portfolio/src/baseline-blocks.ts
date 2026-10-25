@@ -8,9 +8,9 @@ export const BASELINE_BLOCKS: CmsBlock[] = [
     order: 0,
     content: {
       pillVisible: true,
-      pillText: 'Full Stack Developer Intern @ ZenithIndia',
-      pillIsAnnouncement: false,
-      pillAnnouncementTag: 'ANNOUNCEMENT',
+      pillText: 'Full-Stack & AI Roles',
+      pillIsAnnouncement: true,
+      pillAnnouncementTag: 'OPEN TO WORK',
       pillAnnouncementStyle: 'amber',
       eyebrowText: 'Full-Stack Developer · AI Builder',
       headlineNameFirst: 'GUNA',

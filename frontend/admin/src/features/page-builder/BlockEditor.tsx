@@ -693,13 +693,15 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '7px 16px',
+                            padding: '5px 14px 5px 6px',
                             borderRadius: '100px',
-                            fontSize: '0.76rem',
+                            fontSize: '0.74rem',
                             fontWeight: 600,
-                            letterSpacing: '0.12em',
+                            letterSpacing: '0.09em',
                             fontFamily: 'monospace',
                             textTransform: 'uppercase',
+                            maxWidth: '100%',
+                            boxSizing: 'border-box',
                             background: activeColorTheme.bg,
                             border: `1px solid ${activeColorTheme.border}`,
                             color: activeColorTheme.color,
@@ -712,17 +714,22 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                               alignItems: 'center',
                               gap: '4px',
                               fontSize: '0.68rem',
-                              padding: '2px 7px',
-                              borderRadius: '999px',
+                              padding: '2.5px 7px',
+                              borderRadius: '100px',
                               background: 'rgba(255, 255, 255, 0.15)',
                               border: '1px solid rgba(255, 255, 255, 0.3)',
                               color: '#fff',
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                              lineHeight: 1,
                             }}
                           >
                             <span>📢</span>
                             <span>{content.pillAnnouncementTag || 'ANNOUNCEMENT'}</span>
                           </span>
-                          <span>{content.pillText || 'Ex-Full Stack Devloper Intern @ ZenithIndia'}</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {content.pillText || 'Ex-Full Stack Devloper Intern @ ZenithIndia'}
+                          </span>
                         </div>
                       </div>
                     </div>

@@ -85,45 +85,40 @@ body{top:0!important;margin-top:0!important}
 .ft5{top:22%;right:36%;animation-delay:4s}
 @keyframes floatTag{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 .hero-text{position:relative;z-index:2}
-.hero-pill{display:inline-flex;align-items:center;gap:10px;background:rgba(255,200,74,0.09);border:1px solid rgba(255,200,74,0.22);border-radius:100px;padding:8px 18px;font-family:var(--ff-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);margin-bottom:32px;opacity:0;animation:fadeUp .9s .1s forwards;text-decoration:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
+.hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,200,74,0.09);border:1px solid rgba(255,200,74,0.22);border-radius:100px;padding:6px 16px;font-family:var(--ff-mono);font-size:10px;letter-spacing:0.11em;text-transform:uppercase;color:var(--amber);margin-bottom:28px;max-width:100%;box-sizing:border-box;opacity:0;animation:fadeUp .9s .1s forwards;text-decoration:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
 .hero-pill-link{cursor:pointer}
 .hero-pill-link:hover{transform:translateY(-2px);filter:brightness(1.15)}
-.pill-label-text{letter-spacing:inherit}
+.pill-label-text{letter-spacing:inherit;display:inline-block;line-height:1.3}
 
 /* Highlighted Announcement Mode */
-.hero-pill.hero-pill-announcement{position:relative;overflow:hidden;padding:8px 18px;font-weight:600;letter-spacing:0.15em;animation:fadeUp .9s .1s forwards,pillAnnouncementPulse 3s ease-in-out infinite alternate}
+.hero-pill.hero-pill-announcement{position:relative;overflow:hidden;padding:5px 14px 5px 6px;font-weight:600;letter-spacing:0.09em;gap:8px;animation:fadeUp .9s .1s forwards,pillAnnouncementPulse 3s ease-in-out infinite alternate}
 .hero-pill.hero-pill-announcement::after{content:'';position:absolute;top:-50%;left:-70%;width:45%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transform:rotate(25deg);animation:pillShimmerSweep 4.5s cubic-bezier(0.4,0,0.2,1) infinite;pointer-events:none}
 @keyframes pillShimmerSweep{0%{left:-70%}35%{left:150%}100%{left:150%}}
 @keyframes pillAnnouncementPulse{0%{filter:drop-shadow(0 0 5px rgba(255,200,74,0.25))}100%{filter:drop-shadow(0 0 16px rgba(255,200,74,0.55))}}
 
-.pill-announcement-tag{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:0.12em;padding:2px 8px;border-radius:999px;text-transform:uppercase;line-height:1.2;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.pill-announcement-tag{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:700;letter-spacing:0.08em;padding:3px 8px;border-radius:100px;text-transform:uppercase;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,0.4);white-space:nowrap;flex-shrink:0}
 .pill-announcement-icon{font-size:10px;line-height:1}
 
 /* Themes for highlighted announcement */
 /* 1. Amber (Default Golden Flame) */
 .hero-pill-announcement.announcement-style-amber{background:linear-gradient(135deg,rgba(255,191,0,0.18) 0%,rgba(255,107,0,0.1) 100%);border-color:rgba(255,191,0,0.6);color:#ffc84a;box-shadow:0 0 22px rgba(255,191,0,0.3),inset 0 0 12px rgba(255,191,0,0.12)}
 .hero-pill-announcement.announcement-style-amber .pill-announcement-tag{background:rgba(255,191,0,0.28);border:1px solid rgba(255,191,0,0.6);color:#fff}
-.hero-pill-announcement.announcement-style-amber .pulse{background:#ffc84a;box-shadow:0 0 8px #ffc84a}
 
 /* 2. Neon Cyan */
 .hero-pill-announcement.announcement-style-neon-cyan{background:linear-gradient(135deg,rgba(6,182,212,0.18) 0%,rgba(14,165,233,0.1) 100%);border-color:rgba(6,182,212,0.6);color:#38bdf8;box-shadow:0 0 22px rgba(6,182,212,0.3),inset 0 0 12px rgba(6,182,212,0.12)}
 .hero-pill-announcement.announcement-style-neon-cyan .pill-announcement-tag{background:rgba(6,182,212,0.28);border:1px solid rgba(6,182,212,0.6);color:#fff}
-.hero-pill-announcement.announcement-style-neon-cyan .pulse{background:#38bdf8;box-shadow:0 0 8px #38bdf8}
 
 /* 3. Emerald Pulse */
 .hero-pill-announcement.announcement-style-emerald{background:linear-gradient(135deg,rgba(16,185,129,0.18) 0%,rgba(5,150,105,0.1) 100%);border-color:rgba(16,185,129,0.6);color:#34d399;box-shadow:0 0 22px rgba(16,185,129,0.3),inset 0 0 12px rgba(16,185,129,0.12)}
 .hero-pill-announcement.announcement-style-emerald .pill-announcement-tag{background:rgba(16,185,129,0.28);border:1px solid rgba(16,185,129,0.6);color:#fff}
-.hero-pill-announcement.announcement-style-emerald .pulse{background:#34d399;box-shadow:0 0 8px #34d399}
 
 /* 4. Crimson Alert */
 .hero-pill-announcement.announcement-style-crimson{background:linear-gradient(135deg,rgba(244,63,94,0.18) 0%,rgba(225,29,72,0.1) 100%);border-color:rgba(244,63,94,0.6);color:#fb7185;box-shadow:0 0 22px rgba(244,63,94,0.3),inset 0 0 12px rgba(244,63,94,0.12)}
 .hero-pill-announcement.announcement-style-crimson .pill-announcement-tag{background:rgba(244,63,94,0.28);border:1px solid rgba(244,63,94,0.6);color:#fff}
-.hero-pill-announcement.announcement-style-crimson .pulse{background:#fb7185;box-shadow:0 0 8px #fb7185}
 
 /* 5. Purple Royal */
 .hero-pill-announcement.announcement-style-purple{background:linear-gradient(135deg,rgba(168,85,247,0.18) 0%,rgba(126,34,206,0.1) 100%);border-color:rgba(168,85,247,0.6);color:#c084fc;box-shadow:0 0 22px rgba(168,85,247,0.3),inset 0 0 12px rgba(168,85,247,0.12)}
 .hero-pill-announcement.announcement-style-purple .pill-announcement-tag{background:rgba(168,85,247,0.28);border:1px solid rgba(168,85,247,0.6);color:#fff}
-.hero-pill-announcement.announcement-style-purple .pulse{background:#c084fc;box-shadow:0 0 8px #c084fc}
 
 .pulse{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;animation:pulseAnim 2s infinite}
 @keyframes pulseAnim{0%{box-shadow:0 0 0 0 rgba(255,200,74,.5)}70%{box-shadow:0 0 0 10px rgba(255,200,74,0)}100%{box-shadow:0 0 0 0 rgba(255,200,74,0)}}
@@ -388,8 +383,16 @@ footer.ready{opacity:1}
   footer{flex-direction:column;gap:10px;text-align:center;padding:24px}
   h2.sec-title{font-size:clamp(38px,10vw,56px)}
   .contact-head{font-size:clamp(40px,11vw,68px)}
+  .hero-pill{padding:5px 14px;margin-bottom:20px;font-size:9.5px;letter-spacing:0.08em;max-width:100%}
+  .hero-pill.hero-pill-announcement{padding:4px 12px 4px 5px;gap:7px}
+  .pill-announcement-tag{font-size:8px;padding:3px 7px;letter-spacing:0.06em}
+  .pill-label-text{font-size:9.5px;letter-spacing:0.08em}
 }
 @media(max-width:520px){
+  .hero-pill{display:inline-flex;align-items:center;padding:5px 14px;gap:7px;margin-bottom:20px;font-size:9px;letter-spacing:0.06em;max-width:100%;border-radius:100px}
+  .hero-pill.hero-pill-announcement{padding:4.5px 12px 4.5px 5px;gap:7px;border-radius:100px;max-width:100%}
+  .pill-announcement-tag{font-size:7.5px;letter-spacing:0.04em;padding:2.5px 7px;line-height:1;white-space:nowrap;flex-shrink:0}
+  .pill-label-text{font-size:9px;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 120px)}
   .hl-grid{grid-template-columns:1fr}
   .hero-btns{flex-direction:column}
   .btn-primary,.btn-secondary{justify-content:center}
