@@ -208,6 +208,39 @@ describe('Forms & Submissions Inbox API', () => {
     expect(res.text).not.toContain('<a href="https://forms.gunasai.in" class="nav-cta">');
   });
 
+  it('allows hiding Portfolio Home button and customizing pill/eyebrow headings on normal or access forms', async () => {
+    // Create an access request form with showHomeButton: false and custom headings
+    await FormModel.create({
+      siteId: 'gunasai-in',
+      slug: 'bunk360-access',
+      title: 'Bunk360 Access Request',
+      description: 'Enter your credentials to test Bunk360 closed beta.',
+      formType: 'access_request',
+      showHomeButton: false,
+      showPill: true,
+      pillText: 'Closed Beta · Access Request',
+      showEyebrow: true,
+      eyebrowText: 'Bunk360 · Early Access',
+      isActive: true,
+      submitButtonText: 'Request Beta Access',
+      successMessage: 'Access granted soon!',
+      fields: [{ id: 'f1', name: 'user_name', label: 'Full Name', type: 'text', required: true }],
+    });
+
+    const res = await request(app)
+      .get('/feedback/bunk360-access')
+      .set('Host', 'forms.gunasai.in');
+
+    expect(res.status).toBe(200);
+    // Verified that Portfolio Home is hidden
+    expect(res.text).not.toContain('<span>Portfolio Home</span> &#x2197;');
+    // Verified that custom pill and eyebrow are rendered
+    expect(res.text).toContain('Closed Beta · Access Request');
+    expect(res.text).toContain('Bunk360 · Early Access');
+    // Verified no blinking pulse dot
+    expect(res.text).not.toContain('<span class="pulse"></span>');
+  });
+
   it('renders 404 inactive page linking back to Portfolio when form is not found', async () => {
     const res = await request(app)
       .get('/feedback/non-existent-form')

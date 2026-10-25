@@ -692,9 +692,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            padding: '5px 14px 5px 6px',
-                            borderRadius: '100px',
+                            flexWrap: 'wrap',
+                            gap: '6px 8px',
+                            padding: '5px 12px 5px 6px',
+                            borderRadius: '14px',
                             fontSize: '0.74rem',
                             fontWeight: 600,
                             letterSpacing: '0.09em',

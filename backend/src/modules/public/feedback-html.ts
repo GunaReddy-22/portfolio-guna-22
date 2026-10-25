@@ -40,15 +40,33 @@ export function renderFeedbackFormHtml(
     homeUrl = 'https://gunasai.in';
   }
   const safeHomeUrl = escapeHtml(homeUrl);
-  const formTitle = escapeHtml(form.title || 'App Feedback Form');
-  const formattedHeroTitle = formatTitleWithSerifAccent(form.title || 'App Feedback Form');
-  const formDescription = escapeHtml(
-    form.description || 'Please share your thoughts, feature requests, or report any issues to help improve the application.'
-  );
-  const submitButtonText = escapeHtml(form.submitButtonText || 'Submit Feedback');
+  const isFeedback = form.formType === 'feedback';
+  const showHomeButton = form.showHomeButton !== false;
+  const showPill = form.showPill !== false;
+  const rawPill = form.pillText && String(form.pillText).trim();
+  const pillText = escapeHtml(rawPill || (isFeedback ? 'Public Feedback Form · No Login Required' : 'Public Form · No Login Required'));
+  
+  const showEyebrow = form.showEyebrow !== false;
+  const rawEyebrow = form.eyebrowText && String(form.eyebrowText).trim();
+  const eyebrowText = escapeHtml(rawEyebrow || (isFeedback ? 'Application Feedback · Review' : 'Online Form · Submission'));
+
+  const formTitle = escapeHtml(form.title || (isFeedback ? 'App Feedback Form' : 'Online Form'));
+  const formattedHeroTitle = formatTitleWithSerifAccent(form.title || (isFeedback ? 'App Feedback Form' : 'Online Form'));
+  const hasCustomDesc = Boolean(form.description && String(form.description).trim());
+  const formDescription = hasCustomDesc
+    ? escapeHtml(String(form.description).trim())
+    : (isFeedback ? 'Please share your thoughts, feature requests, or report any issues to help improve the application.' : '');
+  const submitButtonText = escapeHtml(form.submitButtonText || (isFeedback ? 'Submit Feedback' : 'Submit Form'));
   const successMessage = escapeHtml(
-    form.successMessage || 'Thank you! Your feedback has been received and will help improve the app.'
+    form.successMessage || (isFeedback ? 'Thank you! Your feedback has been received and will help improve the app.' : 'Thank you! Your submission has been received successfully.')
   );
+  const successTitle = form.formType === 'access_request'
+    ? 'Access Request Submitted!'
+    : form.formType === 'contact'
+    ? 'Message Sent!'
+    : form.formType === 'general'
+    ? 'Submission Received!'
+    : 'Feedback Received!';
   const formSlug = escapeHtml(form.slug);
 
   const fieldsHtml = (form.fields || []).map((field: any, idx: number) => {
@@ -908,9 +926,9 @@ export function renderFeedbackFormHtml(
   <div class="hero-orb orb3"></div>
 
   <!-- Floating Tech Tags -->
-  <div class="float-tag ft1">BETA TESTING</div>
+  <div class="float-tag ft1">VERIFIED FORM</div>
   <div class="float-tag ft2">FULL-STACK APP</div>
-  <div class="float-tag ft3">USER FEEDBACK</div>
+  <div class="float-tag ft3">${isFeedback ? 'USER FEEDBACK' : 'SECURE ACCESS'}</div>
   <div class="float-tag ft4">NIT DELHI &middot; 2026</div>
 
   <!-- Top Navigation Header -->
@@ -918,29 +936,36 @@ export function renderFeedbackFormHtml(
     <a href="${safeHomeUrl}" class="logo">
       <span>GS</span><span class="logo-dot">.</span>
     </a>
+    ${showHomeButton ? `
     <a href="${safeHomeUrl}" class="nav-cta">
       <span>Portfolio Home</span> &#x2197;
     </a>
+    ` : ''}
   </nav>
 
   <!-- Main Content Container -->
   <main class="page-main">
+    ${showPill ? `
     <div class="hero-pill">
-      <span class="pulse"></span>
-      <span>Public Feedback Form &middot; No Login Required</span>
+      <span>${pillText}</span>
     </div>
+    ` : ''}
 
+    ${showEyebrow ? `
     <div class="hero-eyebrow">
       <span class="eyebrow-dash"></span>
-      <span>Application Feedback &middot; Review</span>
+      <span>${eyebrowText}</span>
     </div>
+    ` : ''}
 
     <h1 class="form-hero-title">
       ${formattedHeroTitle}
     </h1>
+    ${formDescription ? `
     <p class="form-hero-desc">
       ${formDescription}
     </p>
+    ` : ''}
 
     <!-- Error Banner -->
     <div id="error_banner" class="cms-form-msg cms-form-error" style="display:none;"></div>
@@ -969,15 +994,17 @@ export function renderFeedbackFormHtml(
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
         </div>
-        <h2 class="success-title">Feedback Received!</h2>
+        <h2 class="success-title">${successTitle}</h2>
         <p class="success-body">${successMessage}</p>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
           <button type="button" id="reset_btn" class="btn-secondary">
             <span>Submit Another Response</span> &#x21ba;
           </button>
+          ${showHomeButton ? `
           <a href="${safeHomeUrl}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
             <span>Back to Portfolio</span> &#x2197;
           </a>
+          ` : ''}
         </div>
       </div>
     </div>

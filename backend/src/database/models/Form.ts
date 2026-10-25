@@ -7,6 +7,12 @@ export interface IFormDoc extends Document {
   title: string;
   description?: string;
   isActive: boolean;
+  formType?: string;
+  showHomeButton?: boolean;
+  showPill?: boolean;
+  pillText?: string;
+  showEyebrow?: boolean;
+  eyebrowText?: string;
   submitButtonText: string;
   successMessage: string;
   notificationEmail?: string;
@@ -38,6 +44,30 @@ const FormSchema = new Schema<IFormDoc>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    formType: {
+      type: String,
+      default: 'general',
+    },
+    showHomeButton: {
+      type: Boolean,
+      default: true,
+    },
+    showPill: {
+      type: Boolean,
+      default: true,
+    },
+    pillText: {
+      type: String,
+      default: '',
+    },
+    showEyebrow: {
+      type: Boolean,
+      default: true,
+    },
+    eyebrowText: {
+      type: String,
+      default: '',
     },
     submitButtonText: {
       type: String,

@@ -40,6 +40,12 @@ export async function listForms(req: Request, res: Response, next: NextFunction)
           name: f.title || (f as any).name || 'Untitled Feedback Form',
           description: f.description || '',
           isActive: f.isActive,
+          formType: f.formType || 'general',
+          showHomeButton: f.showHomeButton !== false,
+          showPill: f.showPill !== false,
+          pillText: f.pillText || '',
+          showEyebrow: f.showEyebrow !== false,
+          eyebrowText: f.eyebrowText || '',
           fieldCount: f.fields?.length || 0,
           responseCount: stats.total,
           unreadCount: stats.unread,
@@ -126,6 +132,12 @@ export async function createForm(req: Request, res: Response, next: NextFunction
       title: validated.title,
       description: validated.description || '',
       isActive: validated.isActive,
+      formType: validated.formType || 'general',
+      showHomeButton: validated.showHomeButton !== false,
+      showPill: validated.showPill !== false,
+      pillText: validated.pillText || '',
+      showEyebrow: validated.showEyebrow !== false,
+      eyebrowText: validated.eyebrowText || '',
       submitButtonText: validated.submitButtonText,
       successMessage: validated.successMessage,
       notificationEmail: validated.notificationEmail || undefined,
@@ -170,6 +182,12 @@ export async function updateForm(req: Request, res: Response, next: NextFunction
       form.slug = req.body.slug.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     }
     if (req.body.isActive !== undefined) form.isActive = req.body.isActive;
+    if (req.body.formType !== undefined) form.formType = req.body.formType;
+    if (req.body.showHomeButton !== undefined) form.showHomeButton = req.body.showHomeButton;
+    if (req.body.showPill !== undefined) form.showPill = req.body.showPill;
+    if (req.body.pillText !== undefined) form.pillText = req.body.pillText;
+    if (req.body.showEyebrow !== undefined) form.showEyebrow = req.body.showEyebrow;
+    if (req.body.eyebrowText !== undefined) form.eyebrowText = req.body.eyebrowText;
     if (req.body.submitButtonText !== undefined) form.submitButtonText = req.body.submitButtonText;
     else if (req.body.submitLabel !== undefined) form.submitButtonText = req.body.submitLabel;
     if (req.body.successMessage !== undefined) form.successMessage = req.body.successMessage;

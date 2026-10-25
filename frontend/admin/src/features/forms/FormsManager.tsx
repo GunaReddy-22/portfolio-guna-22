@@ -82,6 +82,44 @@ const TEMPLATES: Record<string, any> = {
       { id: 'f_company', name: 'company_name', label: 'Company / Project Name', type: 'text', required: false, placeholder: 'Acme Corp' },
     ],
   },
+  access_request: {
+    title: 'App Access & Early Beta Request',
+    slug: 'app-access-request',
+    description: 'Request early access credentials to test our application before public release.',
+    formType: 'access_request',
+    showHomeButton: false,
+    showPill: true,
+    pillText: 'Early Access Request · Closed Beta',
+    showEyebrow: true,
+    eyebrowText: 'Application Access · Verification',
+    submitButtonText: 'Request Access',
+    successMessage: 'Access request submitted! Your details have been recorded and we will reach out shortly.',
+    fields: [
+      { id: 'f_name', name: 'full_name', label: 'Full Name', type: 'text', required: true, placeholder: 'Guna Reddy' },
+      { id: 'f_email', name: 'email', label: 'Your Email Address', type: 'email', required: true, placeholder: 'name@example.com', helpText: 'Access credentials and updates will be sent to this email' },
+      { id: 'f_org', name: 'organization_roll', label: 'College / Organization / Roll Number', type: 'text', required: false, placeholder: 'e.g. NIT Delhi' },
+      { id: 'f_platform', name: 'target_platform', label: 'Device Platform', type: 'select', required: true, options: ['Android Phone', 'iPhone / iOS', 'Web Browser', 'Desktop (Windows / Mac)'] },
+      { id: 'f_reason', name: 'intended_use', label: 'Reason for Access / Additional Notes', type: 'textarea', required: false, placeholder: 'Tell us a bit about why you need access...' },
+    ],
+  },
+  general_form: {
+    title: 'General Contact & Information Form',
+    slug: 'contact-form',
+    description: 'Please submit your details or inquiries using this form.',
+    formType: 'general',
+    showHomeButton: true,
+    showPill: true,
+    pillText: 'Public Form · Direct Submission',
+    showEyebrow: true,
+    eyebrowText: 'Information · Online Submission',
+    submitButtonText: 'Submit Form',
+    successMessage: 'Thank you! Your submission has been received successfully.',
+    fields: [
+      { id: 'f_name', name: 'full_name', label: 'Full Name', type: 'text', required: true, placeholder: 'Your Name' },
+      { id: 'f_email', name: 'email', label: 'Email Address', type: 'email', required: true, placeholder: 'your@email.com' },
+      { id: 'f_msg', name: 'message', label: 'Message / Details', type: 'textarea', required: true, placeholder: 'Write your message or inquiry here...' },
+    ],
+  },
 };
 
 export const FormsManager: React.FC = () => {
@@ -122,24 +160,36 @@ export const FormsManager: React.FC = () => {
         slug: `${tmpl.slug}-${Math.floor(Math.random() * 900 + 100)}`,
         description: tmpl.description,
         isActive: true,
-        submitButtonText: tmpl.submitButtonText,
-        successMessage: tmpl.successMessage,
+        formType: tmpl.formType || 'general',
+        showHomeButton: tmpl.showHomeButton !== false,
+        showPill: tmpl.showPill !== false,
+        pillText: tmpl.pillText || '',
+        showEyebrow: tmpl.showEyebrow !== false,
+        eyebrowText: tmpl.eyebrowText || '',
+        submitButtonText: tmpl.submitButtonText || 'Submit',
+        successMessage: tmpl.successMessage || 'Thank you for your submission!',
         notificationEmail: '',
         fields: JSON.parse(JSON.stringify(tmpl.fields)),
       });
     } else {
       setEditingForm({
-        title: 'New Feedback Form',
-        slug: `feedback-${Date.now().toString().slice(-4)}`,
-        description: 'Please share your thoughts and suggestions below.',
+        title: 'New Custom Form',
+        slug: `form-${Date.now().toString().slice(-4)}`,
+        description: '',
         isActive: true,
-        submitButtonText: 'Submit Feedback',
-        successMessage: 'Thank you for your feedback!',
+        formType: 'general',
+        showHomeButton: true,
+        showPill: true,
+        pillText: 'Public Form · No Login Required',
+        showEyebrow: true,
+        eyebrowText: 'Online Form · Submission',
+        submitButtonText: 'Submit',
+        successMessage: 'Thank you for your submission!',
         notificationEmail: '',
         fields: [
-          { id: `f_${Date.now()}_1`, name: 'overall_rating', label: 'Overall Rating', type: 'rating', required: true },
-          { id: `f_${Date.now()}_2`, name: 'feedback_notes', label: 'Your Feedback / Comments', type: 'textarea', required: true, placeholder: 'Write your thoughts here...' },
-          { id: `f_${Date.now()}_3`, name: 'user_email', label: 'Your Email (Optional)', type: 'email', required: false, placeholder: 'user@example.com' },
+          { id: `f_${Date.now()}_1`, name: 'full_name', label: 'Full Name', type: 'text', required: true, placeholder: 'Your Name' },
+          { id: `f_${Date.now()}_2`, name: 'email', label: 'Email Address', type: 'email', required: true, placeholder: 'name@example.com' },
+          { id: `f_${Date.now()}_3`, name: 'notes', label: 'Notes / Comments', type: 'textarea', required: false, placeholder: 'Write your notes or message here...' },
         ],
       });
     }
@@ -154,8 +204,14 @@ export const FormsManager: React.FC = () => {
       slug: form.slug,
       description: form.description || '',
       isActive: form.isActive !== false,
-      submitButtonText: form.submitButtonText || 'Submit Feedback',
-      successMessage: form.successMessage || 'Thank you for your feedback!',
+      formType: form.formType || 'general',
+      showHomeButton: form.showHomeButton !== false,
+      showPill: form.showPill !== false,
+      pillText: form.pillText || '',
+      showEyebrow: form.showEyebrow !== false,
+      eyebrowText: form.eyebrowText || '',
+      submitButtonText: form.submitButtonText || 'Submit',
+      successMessage: form.successMessage || 'Thank you for your submission!',
       notificationEmail: form.notificationEmail || '',
       fields: form.fields ? JSON.parse(JSON.stringify(form.fields)) : [],
     });
@@ -319,6 +375,19 @@ export const FormsManager: React.FC = () => {
             className="cms-btn cms-btn-sm cms-btn-secondary"
           >
             🚀 App Beta Tester
+          </button>
+          <button
+            onClick={() => handleOpenCreateWithTemplate('access_request')}
+            className="cms-btn cms-btn-sm cms-btn-secondary"
+            style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)' }}
+          >
+            🔑 Access Request Form
+          </button>
+          <button
+            onClick={() => handleOpenCreateWithTemplate('general_form')}
+            className="cms-btn cms-btn-sm cms-btn-secondary"
+          >
+            📝 Normal / Custom Form
           </button>
           <button
             onClick={() => handleOpenCreateWithTemplate('quick_review')}
@@ -574,10 +643,10 @@ export const FormsManager: React.FC = () => {
             <div className="cms-modal-header">
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
-                  {editingForm._id ? 'Edit Feedback Form' : 'Create New Feedback Form'}
+                  {editingForm._id ? 'Edit Form' : 'Create New Form'}
                 </h3>
                 <div style={{ fontSize: '0.8rem', color: 'var(--cms-text-muted)' }}>
-                  Configure your questions, rating stars, and shareable public settings.
+                  Configure your questions, fields, page header, and shareable public settings.
                 </div>
               </div>
               <button className="cms-btn cms-btn-icon cms-btn-ghost" onClick={() => setIsModalOpen(false)}>
@@ -594,7 +663,7 @@ export const FormsManager: React.FC = () => {
                       type="text"
                       className="cms-input"
                       value={editingForm.title}
-                      placeholder="e.g. Zenith Mobile App Beta Feedback"
+                      placeholder="e.g. Bunk360 - Access Request Form"
                       onChange={(e) => {
                         const newTitle = e.target.value;
                         const autoSlug = editingForm._id
@@ -612,7 +681,7 @@ export const FormsManager: React.FC = () => {
                         type="text"
                         className="cms-input"
                         value={editingForm.slug}
-                        placeholder="e.g. zenith-feedback"
+                        placeholder="e.g. bunk360-access"
                         onChange={(e) => setEditingForm({ ...editingForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-') })}
                         required
                       />
@@ -624,12 +693,12 @@ export const FormsManager: React.FC = () => {
                 </div>
 
                 <div className="cms-form-group">
-                  <label className="cms-label">Description / Instructions for Testers</label>
+                  <label className="cms-label">Description / Subtitle (Optional)</label>
                   <textarea
                     className="cms-textarea"
                     rows={2}
                     value={editingForm.description || ''}
-                    placeholder="Tell your testers or users what you'd like feedback on..."
+                    placeholder="Provide instructions or description for visitors..."
                     onChange={(e) => setEditingForm({ ...editingForm, description: e.target.value })}
                   />
                 </div>
@@ -640,7 +709,7 @@ export const FormsManager: React.FC = () => {
                     <input
                       type="text"
                       className="cms-input"
-                      value={editingForm.submitButtonText || 'Submit Feedback'}
+                      value={editingForm.submitButtonText || 'Submit'}
                       onChange={(e) => setEditingForm({ ...editingForm, submitButtonText: e.target.value })}
                     />
                   </div>
@@ -650,7 +719,7 @@ export const FormsManager: React.FC = () => {
                       type="text"
                       className="cms-input"
                       value={editingForm.successMessage || ''}
-                      placeholder="Thank you for your feedback!"
+                      placeholder="Thank you for your submission!"
                       onChange={(e) => setEditingForm({ ...editingForm, successMessage: e.target.value })}
                     />
                   </div>
@@ -674,8 +743,139 @@ export const FormsManager: React.FC = () => {
                         checked={editingForm.isActive}
                         onChange={(e) => setEditingForm({ ...editingForm, isActive: e.target.checked })}
                       />
-                      <span>Active & Accepting Submissions</span>
+                      <span>Active &amp; Accepting Submissions</span>
                     </label>
+                  </div>
+                </div>
+
+                {/* Page Layout & Header Customization Controls */}
+                <div
+                  style={{
+                    margin: '1.25rem 0',
+                    padding: '1.1rem',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.025)',
+                    border: '1px solid var(--cms-border)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--cms-amber)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Sparkles size={16} />
+                      Page Layout &amp; Header Settings
+                    </span>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--cms-text-muted)' }}>
+                      Control top navigation button and headings
+                    </span>
+                  </div>
+
+                  {/* Portfolio Home Visibility & Form Category */}
+                  <div className="cms-form-row" style={{ marginBottom: '1rem', alignItems: 'flex-start' }}>
+                    <div className="cms-form-group" style={{ marginBottom: 0, flex: 1.1 }}>
+                      <label className="cms-label">Form Purpose / Category</label>
+                      <select
+                        className="cms-input"
+                        value={editingForm.formType || 'general'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEditingForm({
+                            ...editingForm,
+                            formType: val,
+                            pillText: editingForm.pillText || (val === 'access_request' ? 'Access Request Form · Closed Beta' : val === 'feedback' ? 'Public Feedback Form · No Login Required' : 'Public Form · No Login Required'),
+                            eyebrowText: editingForm.eyebrowText || (val === 'access_request' ? 'Application · Access Request' : val === 'feedback' ? 'Application Feedback · Review' : 'Online Form · Submission'),
+                          });
+                        }}
+                      >
+                        <option value="general">Normal / Custom Form</option>
+                        <option value="access_request">Access Request / Early Beta Form</option>
+                        <option value="feedback">User Feedback Form</option>
+                        <option value="contact">Contact &amp; Inquiry Form</option>
+                      </select>
+                    </div>
+
+                    <div className="cms-form-group" style={{ marginBottom: 0, flex: 1.3 }}>
+                      <label className="cms-label">Portfolio Home Navigation Link</label>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.65rem',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '6px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid var(--cms-border)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          id="chk_show_home"
+                          style={{ accentColor: 'var(--cms-amber)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          checked={editingForm.showHomeButton !== false}
+                          onChange={(e) => setEditingForm({ ...editingForm, showHomeButton: e.target.checked })}
+                        />
+                        <label htmlFor="chk_show_home" style={{ cursor: 'pointer', margin: 0, fontSize: '0.84rem' }}>
+                          <span style={{ fontWeight: 600, color: '#fff' }}>Show &ldquo;Portfolio Home ↗&rdquo; Button</span>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--cms-text-muted)' }}>
+                            {editingForm.showHomeButton !== false ? 'Visible in top right navbar' : 'Hidden from public navbar'}
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Status Badge Pill */}
+                  <div className="cms-form-row" style={{ marginBottom: '0.85rem' }}>
+                    <div className="cms-form-group" style={{ marginBottom: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0 }}>
+                          <input
+                            type="checkbox"
+                            style={{ accentColor: 'var(--cms-amber)', width: '15px', height: '15px' }}
+                            checked={editingForm.showPill !== false}
+                            onChange={(e) => setEditingForm({ ...editingForm, showPill: e.target.checked })}
+                          />
+                          <span className="cms-label" style={{ margin: 0, fontWeight: 600 }}>Top Status Badge Pill</span>
+                        </label>
+                        <span style={{ fontSize: '0.72rem', color: editingForm.showPill !== false ? 'var(--cms-amber)' : 'var(--cms-text-muted)' }}>
+                          {editingForm.showPill !== false ? 'Enabled' : 'Hidden'}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        className="cms-input"
+                        disabled={editingForm.showPill === false}
+                        placeholder="e.g. Access Request Form · No Login Required"
+                        value={editingForm.pillText || ''}
+                        onChange={(e) => setEditingForm({ ...editingForm, pillText: e.target.value })}
+                        style={{ opacity: editingForm.showPill === false ? 0.4 : 1 }}
+                      />
+                    </div>
+
+                    {/* Top Eyebrow Subheading */}
+                    <div className="cms-form-group" style={{ marginBottom: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0 }}>
+                          <input
+                            type="checkbox"
+                            style={{ accentColor: 'var(--cms-amber)', width: '15px', height: '15px' }}
+                            checked={editingForm.showEyebrow !== false}
+                            onChange={(e) => setEditingForm({ ...editingForm, showEyebrow: e.target.checked })}
+                          />
+                          <span className="cms-label" style={{ margin: 0, fontWeight: 600 }}>Eyebrow Subheading</span>
+                        </label>
+                        <span style={{ fontSize: '0.72rem', color: editingForm.showEyebrow !== false ? 'var(--cms-amber)' : 'var(--cms-text-muted)' }}>
+                          {editingForm.showEyebrow !== false ? 'Enabled' : 'Hidden'}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        className="cms-input"
+                        disabled={editingForm.showEyebrow === false}
+                        placeholder="e.g. Application Access · Verification"
+                        value={editingForm.eyebrowText || ''}
+                        onChange={(e) => setEditingForm({ ...editingForm, eyebrowText: e.target.value })}
+                        style={{ opacity: editingForm.showEyebrow === false ? 0.4 : 1 }}
+                      />
+                    </div>
                   </div>
                 </div>
 
