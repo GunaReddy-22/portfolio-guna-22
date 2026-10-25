@@ -325,7 +325,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
           {/* Status Pill & Special Announcement Banner Control Card */}
           <div
-            className="cms-card"
+            className="cms-card cms-builder-nested-card"
             style={{
               padding: '1.25rem',
               marginBottom: '1.5rem',
@@ -335,6 +335,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                 : 'var(--cms-surface)',
               borderRadius: '10px',
               boxShadow: isAnnouncement ? '0 4px 20px rgba(245, 158, 11, 0.08)' : 'none',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              minWidth: 0,
             }}
           >
             {/* Card Header with Visibility Toggle */}
@@ -348,9 +351,11 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                 paddingBottom: '0.85rem',
                 borderBottom: '1px solid var(--cms-border)',
                 marginBottom: '1rem',
+                width: '100%',
+                minWidth: 0,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', minWidth: 0 }}>
                 <div
                   style={{
                     width: '34px',
@@ -361,12 +366,13 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: isPillVisible ? 'var(--cms-amber)' : 'var(--cms-text-muted)',
+                    flexShrink: 0,
                   }}
                 >
                   <Megaphone size={18} />
                 </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--cms-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--cms-text)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     Status Pill &amp; Announcement
                     <span
                       style={{
@@ -400,6 +406,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                   background: isPillVisible ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255, 255, 255, 0.04)',
                   border: `1px solid ${isPillVisible ? 'rgba(245, 158, 11, 0.4)' : 'var(--cms-border)'}`,
                   userSelect: 'none',
+                  flexShrink: 0,
                 }}
               >
                 <input
@@ -430,6 +437,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                   gap: '0.75rem',
                   fontSize: '0.85rem',
                   color: 'var(--cms-text-muted)',
+                  boxSizing: 'border-box',
                 }}
               >
                 <EyeOff size={18} style={{ color: '#f87171', flexShrink: 0 }} />
@@ -438,10 +446,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                 </span>
               </div>
             ) : (
-              <div>
+              <div style={{ width: '100%', minWidth: 0 }}>
                 {/* Pill Text & Link Input Row */}
                 <div className="cms-form-row">
-                  <div className="cms-form-group" style={{ flex: 1.4 }}>
+                  <div className="cms-form-group" style={{ flex: 1.4, minWidth: 0 }}>
                     <label className="cms-label">Status Pill / Announcement Text</label>
                     <input
                       type="text"
@@ -451,7 +459,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                       onChange={(e) => updateContent('pillText', e.target.value)}
                     />
                   </div>
-                  <div className="cms-form-group" style={{ flex: 1 }}>
+                  <div className="cms-form-group" style={{ flex: 1, minWidth: 0 }}>
                     <label className="cms-label">Click Link URL (Optional)</label>
                     <input
                       type="text"
@@ -465,20 +473,24 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                 {/* Announcement Mode Box */}
                 <div
+                  className="cms-builder-box"
                   style={{
                     marginTop: '0.85rem',
                     padding: '1rem',
                     borderRadius: '8px',
                     background: isAnnouncement ? 'rgba(245, 158, 11, 0.08)' : 'rgba(255, 255, 255, 0.02)',
                     border: `1px solid ${isAnnouncement ? 'rgba(245, 158, 11, 0.35)' : 'var(--cms-border)'}`,
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    minWidth: 0,
                   }}
                 >
                   {/* Announcement Toggle */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: isAnnouncement ? '1rem' : 0 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', userSelect: 'none' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', userSelect: 'none', minWidth: 0 }}>
                       <input
                         type="checkbox"
-                        style={{ accentColor: 'var(--cms-amber)', width: '16px', height: '16px' }}
+                        style={{ accentColor: 'var(--cms-amber)', width: '16px', height: '16px', flexShrink: 0 }}
                         checked={isAnnouncement}
                         onChange={(e) => updateContent('pillIsAnnouncement', e.target.checked)}
                       />
@@ -497,6 +509,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                           background: expiryStatus.bg,
                           color: expiryStatus.color,
                           border: `1px solid ${expiryStatus.borderColor}`,
+                          flexShrink: 0,
                         }}
                       >
                         {expiryStatus.badge}
@@ -508,8 +521,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                   {isAnnouncement && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {/* Tag Input & Suggestions */}
-                      <div>
-                        <label className="cms-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <label className="cms-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
                           <span>Announcement Tag / Badge Label &amp; Icon</span>
                           <span style={{ fontSize: '0.75rem', color: 'var(--cms-text-muted)' }}>Click a chip to apply</span>
                         </label>
@@ -545,7 +558,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                             );
                           })}
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                           <input
                             type="text"
                             className="cms-input"
@@ -564,7 +577,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                           <input
                             type="text"
                             className="cms-input"
-                            style={{ flex: 1 }}
+                            style={{ flex: '1 1 180px', minWidth: 0 }}
                             placeholder="ANNOUNCEMENT"
                             value={content.pillAnnouncementTag || ''}
                             onChange={(e) => {
@@ -601,9 +614,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                       </div>
 
                       {/* Highlight Color Theme Selector */}
-                      <div>
+                      <div style={{ minWidth: 0 }}>
                         <label className="cms-label">Highlight Glow Theme</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(115px, 1fr))', gap: '0.5rem' }}>
                           {Object.entries(colorThemes).map(([key, t]) => {
                             const isSelected = announcementStyle === key;
                             return (
@@ -625,6 +638,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                                   fontWeight: isSelected ? 600 : 400,
                                   boxShadow: isSelected ? `0 0 10px ${t.glow}` : 'none',
                                   transition: 'all 0.2s ease',
+                                  minWidth: 0,
                                 }}
                               >
                                 <span
@@ -637,8 +651,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                                     flexShrink: 0,
                                   }}
                                 />
-                                <span>{t.label}</span>
-                                {isSelected && <Check size={14} style={{ marginLeft: 'auto' }} />}
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
+                                {isSelected && <Check size={14} style={{ marginLeft: 'auto', flexShrink: 0 }} />}
                               </button>
                             );
                           })}
@@ -647,19 +661,23 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                       {/* Duration & Expiration Controls */}
                       <div
+                        className="cms-builder-box"
                         style={{
                           padding: '0.85rem',
                           borderRadius: '6px',
                           background: 'rgba(0, 0, 0, 0.25)',
                           border: '1px solid var(--cms-border)',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          boxSizing: 'border-box',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <label className="cms-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Clock size={15} style={{ color: 'var(--cms-amber)' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                          <label className="cms-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <Clock size={15} style={{ color: 'var(--cms-amber)', flexShrink: 0 }} />
                             <span>Announcement Duration &amp; Expiration Controls</span>
                           </label>
-                          <span style={{ fontSize: '0.75rem', color: expiryStatus.color, fontWeight: 500 }}>
+                          <span style={{ fontSize: '0.75rem', color: expiryStatus.color, fontWeight: 500, flexShrink: 0 }}>
                             {expiryStatus.badge}
                           </span>
                         </div>
@@ -758,13 +776,13 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                         {/* Exact Expiration DateTime & Expiry Action */}
                         <div className="cms-form-row" style={{ marginBottom: 0 }}>
-                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1.2 }}>
+                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1.2, minWidth: 0 }}>
                             <label className="cms-label" style={{ fontSize: '0.78rem' }}>Exact Expiration Date &amp; Time</label>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <input
                                 type="datetime-local"
                                 className="cms-input"
-                                style={{ flex: 1 }}
+                                style={{ flex: '1 1 180px', minWidth: 0 }}
                                 value={formatToDatetimeLocal(content.pillAnnouncementExpiresAt)}
                                 onChange={(e) => {
                                   const val = e.target.value;
@@ -791,7 +809,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                             </div>
                           </div>
 
-                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1 }}>
+                          <div className="cms-form-group" style={{ marginBottom: 0, flex: 1, minWidth: 0 }}>
                             <label className="cms-label" style={{ fontSize: '0.78rem' }}>When Expired Action</label>
                             <select
                               className="cms-input"
@@ -807,11 +825,16 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
 
                       {/* Live In-Editor Preview */}
                       <div
+                        className="cms-builder-box"
                         style={{
                           padding: '0.85rem 1rem',
                           borderRadius: '8px',
                           background: 'rgba(0, 0, 0, 0.45)',
                           border: '1px solid var(--cms-border)',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          boxSizing: 'border-box',
+                          overflow: 'hidden',
                         }}
                       >
                         <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cms-text-muted)', marginBottom: '0.5rem' }}>
@@ -857,7 +880,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                             <span className="pill-announcement-icon">{activeAnnouncementIcon}</span>
                             <span>{cleanAnnouncementTag || 'ANNOUNCEMENT'}</span>
                           </span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', minWidth: 0 }}>
                             {content.pillText || 'Ex-Full Stack Devloper Intern @ ZenithIndia'}
                           </span>
                         </div>
@@ -985,7 +1008,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
           </div>
 
           {/* CTA Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Call-To-Action Buttons ({ctaButtons.length})</span>
             <button
               type="button"
@@ -999,12 +1022,12 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
             </button>
           </div>
           {ctaButtons.map((btn: any, idx: number) => (
-            <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+            <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input
                 type="text"
                 className="cms-input"
                 placeholder="Button Label"
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 130px', minWidth: 0 }}
                 value={btn.label || ''}
                 onChange={(e) => {
                   const next = [...ctaButtons];
@@ -1016,7 +1039,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                 type="text"
                 className="cms-input"
                 placeholder="#section or URL"
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 140px', minWidth: 0 }}
                 value={btn.url || ''}
                 onChange={(e) => {
                   const next = [...ctaButtons];
@@ -1024,34 +1047,36 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                   updateContent('ctaButtons', next);
                 }}
               />
-              <select
-                className="cms-input"
-                style={{ width: '110px' }}
-                value={btn.style || 'primary'}
-                onChange={(e) => {
-                  const next = [...ctaButtons];
-                  next[idx].style = e.target.value;
-                  updateContent('ctaButtons', next);
-                }}
-              >
-                <option value="primary">Primary</option>
-                <option value="secondary">Secondary</option>
-              </select>
-              <button
-                type="button"
-                className="cms-btn cms-btn-danger cms-btn-sm cms-btn-icon"
-                onClick={() => {
-                  const next = ctaButtons.filter((_: any, i: number) => i !== idx);
-                  updateContent('ctaButtons', next);
-                }}
-              >
-                <Trash2 size={13} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+                <select
+                  className="cms-input"
+                  style={{ width: '110px' }}
+                  value={btn.style || 'primary'}
+                  onChange={(e) => {
+                    const next = [...ctaButtons];
+                    next[idx].style = e.target.value;
+                    updateContent('ctaButtons', next);
+                  }}
+                >
+                  <option value="primary">Primary</option>
+                  <option value="secondary">Secondary</option>
+                </select>
+                <button
+                  type="button"
+                  className="cms-btn cms-btn-danger cms-btn-sm cms-btn-icon"
+                  onClick={() => {
+                    const next = ctaButtons.filter((_: any, i: number) => i !== idx);
+                    updateContent('ctaButtons', next);
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
             </div>
           ))}
 
           {/* Stats Counter */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '1rem 0 0.5rem 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '1rem 0 0.5rem 0', flexWrap: 'wrap', gap: '0.4rem' }}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Highlight Counters ({stats.length})</span>
             <button
               type="button"
@@ -1065,36 +1090,38 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
             </button>
           </div>
           {stats.map((st: any, idx: number) => (
-            <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="Number (e.g. 100)"
-                style={{ width: '90px' }}
-                value={st.number || ''}
-                onChange={(e) => {
-                  const next = [...stats];
-                  next[idx].number = e.target.value;
-                  updateContent('stats', next);
-                }}
-              />
-              <input
-                type="text"
-                className="cms-input"
-                placeholder="+"
-                style={{ width: '50px' }}
-                value={st.suffix || ''}
-                onChange={(e) => {
-                  const next = [...stats];
-                  next[idx].suffix = e.target.value;
-                  updateContent('stats', next);
-                }}
-              />
+            <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+                <input
+                  type="text"
+                  className="cms-input"
+                  placeholder="100"
+                  style={{ width: '75px' }}
+                  value={st.number || ''}
+                  onChange={(e) => {
+                    const next = [...stats];
+                    next[idx].number = e.target.value;
+                    updateContent('stats', next);
+                  }}
+                />
+                <input
+                  type="text"
+                  className="cms-input"
+                  placeholder="+"
+                  style={{ width: '45px', textAlign: 'center' }}
+                  value={st.suffix || ''}
+                  onChange={(e) => {
+                    const next = [...stats];
+                    next[idx].suffix = e.target.value;
+                    updateContent('stats', next);
+                  }}
+                />
+              </div>
               <input
                 type="text"
                 className="cms-input"
                 placeholder="Label (e.g. DSA Problems)"
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 130px', minWidth: 0 }}
                 value={st.label || ''}
                 onChange={(e) => {
                   const next = [...stats];
@@ -1105,6 +1132,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
               <button
                 type="button"
                 className="cms-btn cms-btn-danger cms-btn-sm cms-btn-icon"
+                style={{ flexShrink: 0 }}
                 onClick={() => {
                   const next = stats.filter((_: any, i: number) => i !== idx);
                   updateContent('stats', next);
@@ -2072,7 +2100,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                   </div>
                   <div className="cms-form-group">
                     <label className="cms-label">Platform Badge Label &amp; Style</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
                       <input
                         type="text"
                         className="cms-input"

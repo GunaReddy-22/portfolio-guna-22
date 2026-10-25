@@ -32,6 +32,9 @@ import {
   AlertTriangle,
   CheckCircle,
   X,
+  Layers,
+  Sliders,
+  ArrowLeft,
 } from 'lucide-react';
 import { api, getPublicSiteUrl } from '../../lib/api';
 import { BlockEditor } from './BlockEditor';
@@ -161,6 +164,7 @@ export const PageBuilder: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'sections' | 'editor'>('editor');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -586,10 +590,30 @@ export const PageBuilder: React.FC = () => {
         </div>
       )}
 
+      {/* Mobile Workspace Tabs (only visible on mobile <= 900px) */}
+      <div className="cms-builder-mobile-tabs">
+        <button
+          type="button"
+          className={`cms-builder-mobile-tab ${mobileTab === 'sections' ? 'active' : ''}`}
+          onClick={() => setMobileTab('sections')}
+        >
+          <Layers size={14} />
+          <span>Sections ({sections.length})</span>
+        </button>
+        <button
+          type="button"
+          className={`cms-builder-mobile-tab ${mobileTab === 'editor' ? 'active' : ''}`}
+          onClick={() => setMobileTab('editor')}
+        >
+          <Sliders size={14} />
+          <span>Editor: {selectedSection?.type || 'Block'}</span>
+        </button>
+      </div>
+
       {/* Builder 2-Column Workspace */}
       <div className="cms-builder-layout">
         {/* Left Column: Reorderable Sections List */}
-        <div>
+        <div className={mobileTab === 'editor' ? 'cms-builder-col-hidden-mobile' : ''}>
           <div
             style={{
               display: 'flex',
@@ -626,7 +650,10 @@ export const PageBuilder: React.FC = () => {
                     index={idx}
                     total={sections.length}
                     isActive={section.id === selectedSectionId}
-                    onSelect={() => setSelectedSectionId(section.id)}
+                    onSelect={() => {
+                      setSelectedSectionId(section.id);
+                      setMobileTab('editor');
+                    }}
                     onToggleVisibility={() => handleToggleVisibility(section.id)}
                     onDuplicate={() => handleDuplicate(section.id)}
                     onDelete={() => handleDelete(section.id)}
@@ -640,17 +667,28 @@ export const PageBuilder: React.FC = () => {
         </div>
 
         {/* Right Column: Active Block Structured Editor */}
-        <div>
+        <div className={mobileTab === 'sections' ? 'cms-builder-col-hidden-mobile' : ''}>
           {selectedSection ? (
             <div className="cms-card">
-              <div className="cms-card-header">
-                <div>
-                  <h3 className="cms-card-title">
-                    Editing Block: <span style={{ textTransform: 'capitalize', color: 'var(--cms-amber)' }}>{selectedSection.type}</span>
-                  </h3>
-                  <p className="cms-card-desc">ID: {selectedSection.id}</p>
+              <div className="cms-card-header" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="cms-btn cms-btn-ghost cms-btn-sm cms-builder-mobile-back-btn"
+                    onClick={() => setMobileTab('sections')}
+                    title="Back to Sections List"
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Sections</span>
+                  </button>
+                  <div>
+                    <h3 className="cms-card-title">
+                      Editing Block: <span style={{ textTransform: 'capitalize', color: 'var(--cms-amber)' }}>{selectedSection.type}</span>
+                    </h3>
+                    <p className="cms-card-desc">ID: {selectedSection.id}</p>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => handleToggleVisibility(selectedSection.id)}
                     className="cms-btn cms-btn-secondary cms-btn-sm"
@@ -697,7 +735,7 @@ export const PageBuilder: React.FC = () => {
               </button>
             </div>
             <div className="cms-modal-body">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
                 {[
                   { type: 'hero', label: 'Hero', desc: 'Main headline, CTA buttons & portrait' },
                   { type: 'about', label: 'About', desc: 'Biography, lead paragraph & stats' },
