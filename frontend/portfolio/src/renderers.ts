@@ -15,7 +15,7 @@ export function renderBlock(block: CmsBlock): string {
     case 'hero': {
       const c = (block.content || {}) as any;
       const tagsHtml = (c.floatingTags || [])
-        .map((t: string, i: number) => `<div class="float-tag ft${(i % 5) + 1}">${escapeHtml(t)}</div>`)
+        .map((t: string, i: number) => `<div class="float-tag ft${(i % 5) + 1} notranslate" translate="no">${escapeHtml(t)}</div>`)
         .join('');
 
       const ctaHtml = (c.ctaButtons || [])
@@ -122,7 +122,7 @@ export function renderBlock(block: CmsBlock): string {
         <div class="skill-block">
           <div class="sb-label">${escapeHtml(g.label)}</div>
           <div class="sb-tags">
-            ${(g.tags || []).map((t: string) => `<span class="sb-tag">${escapeHtml(t)}</span>`).join('')}
+            ${(g.tags || []).map((t: string) => `<span class="sb-tag notranslate" translate="no">${escapeHtml(t)}</span>`).join('')}
           </div>
         </div>
       `
@@ -247,7 +247,7 @@ export function renderBlock(block: CmsBlock): string {
               <h3 class="proj-name">${escapeHtml(p.name || p.title)}</h3>
               <p class="proj-desc">${escapeHtml(p.description)}</p>
               <div class="proj-pills">
-                ${(p.techPills || p.tags || []).map((pill: string) => `<span class="ppill">${escapeHtml(pill)}</span>`).join('')}
+                ${(p.techPills || p.tags || []).map((pill: string) => `<span class="ppill notranslate" translate="no">${escapeHtml(pill)}</span>`).join('')}
               </div>
               <ul class="proj-points">
                 ${(p.points || []).map((pt: string) => `<li>${escapeHtml(pt)}</li>`).join('')}
