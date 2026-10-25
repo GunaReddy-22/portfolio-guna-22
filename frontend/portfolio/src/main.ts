@@ -408,14 +408,7 @@ function applySiteSettings(site: any) {
               )}</a>`
             : '';
 
-        mobMenu.innerHTML = `<button class="mob-close" id="mobClose" aria-label="Close menu">&times;</button>${mobLinksHtml}${mobCtaHtml}${mobMechHtml}`;
-        const newClose = document.getElementById('mobClose');
-        if (newClose) {
-          newClose.addEventListener('click', () => {
-            mobMenu.classList.remove('open');
-            document.body.style.overflow = '';
-          });
-        }
+        mobMenu.innerHTML = `<button class="mob-close" id="mobClose" type="button" aria-label="Close menu">&times;</button>${mobLinksHtml}${mobCtaHtml}${mobMechHtml}`;
       }
     }
 
@@ -650,22 +643,6 @@ function setupInteractiveBehaviors() {
     window.addEventListener('scroll', () => nav.classList.toggle('stuck', window.scrollY > 60), { passive: true });
   }
 
-  // Mobile menu
-  const ham = document.getElementById('ham');
-  const mobMenu = document.getElementById('mobMenu');
-  const mobClose = document.getElementById('mobClose');
-  if (ham && mobMenu) {
-    ham.addEventListener('click', () => {
-      ham.classList.toggle('open');
-      mobMenu.classList.toggle('open');
-    });
-  }
-  if (mobClose && ham && mobMenu) {
-    mobClose.addEventListener('click', () => {
-      ham.classList.remove('open');
-      mobMenu.classList.remove('open');
-    });
-  }
 
   // Scroll reveals
   const io = new IntersectionObserver(
@@ -818,8 +795,103 @@ function initLanguageSwitcher() {
   document.body.appendChild(s);
 }
 
-// Kick off hydration and language switcher
-document.addEventListener('DOMContentLoaded', () => {
+// ----------------------------------------------------------------------------
+// 3. RESPONSIVE MOBILE MENU CONTROLLER (SINGLETON, DELEGATED, ACCESSIBLE)
+// ----------------------------------------------------------------------------
+let mobileMenuBound = false;
+
+function initMobileMenu() {
+  if (mobileMenuBound) return;
+  mobileMenuBound = true;
+
+  const ham = document.getElementById('ham');
+  const mobMenu = document.getElementById('mobMenu');
+
+  function openMenu() {
+    if (!mobMenu) return;
+    if (ham) {
+      ham.classList.add('open');
+      ham.setAttribute('aria-expanded', 'true');
+    }
+    mobMenu.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    if (!mobMenu) return;
+    if (ham) {
+      ham.classList.remove('open');
+      ham.setAttribute('aria-expanded', 'false');
+    }
+    mobMenu.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function toggleMenu() {
+    if (!mobMenu) return;
+    if (mobMenu.classList.contains('open')) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  // Register on window for inline onclick="closeMob()" and external triggers
+  (window as any).closeMob = closeMenu;
+  (window as any).openMob = openMenu;
+  (window as any).toggleMob = toggleMenu;
+
+  if (ham) {
+    ham.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMenu();
+    });
+  }
+
+  // Delegated click listener so dynamically populated links or mobClose always work
+  if (mobMenu) {
+    mobMenu.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('#mobClose') ||
+        target.closest('.mob-close') ||
+        target.tagName === 'A' ||
+        target.closest('a')
+      ) {
+        closeMenu();
+      }
+    });
+  }
+
+  // Close when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMenu();
+    }
+  });
+
+  // Close when resized back to desktop
+  window.addEventListener(
+    'resize',
+    () => {
+      if (window.innerWidth > 960 && mobMenu?.classList.contains('open')) {
+        closeMenu();
+      }
+    },
+    { passive: true }
+  );
+}
+
+// Kick off hydration, mobile menu, and language switcher
+function boot() {
+  initMobileMenu();
   hydratePortfolio();
   initLanguageSwitcher();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
