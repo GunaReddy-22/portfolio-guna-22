@@ -62,6 +62,77 @@ export function renderProjectActionButtons(p: any): string {
   return buttons.join('');
 }
 
+export function resolveAnnouncementIcon(tag?: string | null, explicitIcon?: string | null): string {
+  if (explicitIcon && explicitIcon.trim()) {
+    return explicitIcon.trim();
+  }
+  const rawTag = (tag || '').trim();
+  if (!rawTag) return '📢';
+
+  try {
+    const emojiMatch = rawTag.match(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u);
+    if (emojiMatch && emojiMatch[0]) {
+      return emojiMatch[0];
+    }
+  } catch {
+    // fallback
+  }
+
+  const normalized = rawTag.toUpperCase();
+  if (normalized.includes('WORK') || normalized.includes('JOB') || normalized.includes('HIRE') || normalized.includes('HIRING') || normalized.includes('CAREER') || normalized.includes('OPPORTUNIT')) {
+    return '💼';
+  }
+  if (normalized.includes('NEW') || normalized.includes('FRESH') || normalized.includes('SPARK') || normalized.includes('INTRODUC')) {
+    return '✨';
+  }
+  if (normalized.includes('UPDATE') || normalized.includes('LAUNCH') || normalized.includes('RELEASE') || normalized.includes('VERSION') || normalized.includes('SHIPPED') || normalized.includes('DEPLOY')) {
+    return '🚀';
+  }
+  if (normalized.includes('FEATURE') || normalized.includes('SPOTLIGHT') || normalized.includes('HIGHLIGHT') || normalized.includes('TARGET')) {
+    return '🎯';
+  }
+  if (normalized.includes('HOT') || normalized.includes('TRENDING') || normalized.includes('FIRE') || normalized.includes('POPULAR')) {
+    return '🔥';
+  }
+  if (normalized.includes('AWARD') || normalized.includes('ACHIEV') || normalized.includes('WIN') || normalized.includes('HONOR') || normalized.includes('CERTIF')) {
+    return '🏆';
+  }
+  if (normalized.includes('ALERT') || normalized.includes('URGENT') || normalized.includes('WARN') || normalized.includes('IMPORTANT')) {
+    return '🚨';
+  }
+  if (normalized.includes('STAR') || normalized.includes('SPECIAL')) {
+    return '⭐';
+  }
+  if (normalized.includes('BUG') || normalized.includes('FIX') || normalized.includes('PATCH')) {
+    return '🐛';
+  }
+  if (normalized.includes('EVENT') || normalized.includes('MEET') || normalized.includes('TALK') || normalized.includes('CONFERENCE')) {
+    return '🗓️';
+  }
+  if (normalized.includes('IDEA') || normalized.includes('TIP') || normalized.includes('THOUGHT')) {
+    return '💡';
+  }
+  if (normalized.includes('CELEBRAT') || normalized.includes('PARTY')) {
+    return '🎉';
+  }
+  if (normalized.includes('CODE') || normalized.includes('DEV') || normalized.includes('TECH') || normalized.includes('PROGRAM')) {
+    return '💻';
+  }
+
+  return '📢';
+}
+
+export function extractAnnouncementTagText(tag?: string | null): string {
+  if (!tag) return '';
+  try {
+    const cleaned = tag.replace(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])+\s*/u, '').trim();
+    if (cleaned) return cleaned;
+  } catch {
+    // fallback
+  }
+  return tag.trim();
+}
+
 export function renderBlock(block: CmsBlock): string {
   if (!block || !block.isVisible) return '';
 
@@ -130,6 +201,8 @@ export function renderBlock(block: CmsBlock): string {
           const treatAsAnnouncement = isAnnouncement && !isExpired;
           const announcementStyle = c.pillAnnouncementStyle || 'amber';
           const announcementTag = c.pillAnnouncementTag || 'ANNOUNCEMENT';
+          const announcementIcon = resolveAnnouncementIcon(announcementTag, c.pillAnnouncementIcon);
+          const cleanTag = extractAnnouncementTagText(announcementTag);
           const rawText = String(c.pillText || '').trim();
           const pillText = escapeHtml(rawText);
           const pillLink = c.pillLink ? sanitizeUrl(c.pillLink) : '';
@@ -141,8 +214,8 @@ export function renderBlock(block: CmsBlock): string {
             pillLink ? 'hero-pill-link' : '',
           ].filter(Boolean).join(' ');
 
-          const tagHtml = treatAsAnnouncement && announcementTag
-            ? `<span class="pill-announcement-tag"><span class="pill-announcement-icon" aria-hidden="true">📢</span>${escapeHtml(announcementTag)}</span>`
+          const tagHtml = treatAsAnnouncement && cleanTag
+            ? `<span class="pill-announcement-tag"><span class="pill-announcement-icon" aria-hidden="true">${escapeHtml(announcementIcon)}</span>${escapeHtml(cleanTag)}</span>`
             : '';
 
           const contentInner = `${tagHtml}<span class="pill-label-text">${pillText}</span>`;

@@ -190,6 +190,39 @@ describe('Stored XSS Mitigation & Complete 12-Block Coverage', () => {
       expect(html).toContain('href="#"');
     });
 
+    it('1b. renders hero announcement pill with dynamic icon matching tag (e.g. OPEN TO WORK -> 💼)', () => {
+      const block = CmsBlockSchema.parse({
+        id: 'sec-hero',
+        type: 'hero',
+        ...defaultBlockMeta,
+        content: {
+          pillIsAnnouncement: true,
+          pillAnnouncementTag: 'OPEN TO WORK',
+          pillText: 'Full Stack Engineer',
+        },
+      });
+
+      const html = renderBlock(block);
+      expect(html).toContain('hero-pill-announcement');
+      expect(html).toContain('<span class="pill-announcement-icon" aria-hidden="true">💼</span>OPEN TO WORK');
+
+      // Test custom icon override
+      const customBlock = CmsBlockSchema.parse({
+        id: 'sec-hero-custom',
+        type: 'hero',
+        ...defaultBlockMeta,
+        content: {
+          pillIsAnnouncement: true,
+          pillAnnouncementTag: 'SUPERCHARGED',
+          pillAnnouncementIcon: '⚡',
+          pillText: 'Available immediately',
+        },
+      });
+
+      const customHtml = renderBlock(customBlock);
+      expect(customHtml).toContain('<span class="pill-announcement-icon" aria-hidden="true">⚡</span>SUPERCHARGED');
+    });
+
     it('2. renders about block with quick facts and escaped paragraphs', () => {
       const block = CmsBlockSchema.parse({
         id: 'sec-about',

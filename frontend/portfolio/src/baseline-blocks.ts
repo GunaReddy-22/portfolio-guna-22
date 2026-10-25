@@ -11,6 +11,7 @@ export const BASELINE_BLOCKS: CmsBlock[] = [
       pillText: 'Full-Stack & AI Roles',
       pillIsAnnouncement: true,
       pillAnnouncementTag: 'OPEN TO WORK',
+      pillAnnouncementIcon: '💼',
       pillAnnouncementStyle: 'amber',
       eyebrowText: 'Full-Stack Developer · AI Builder',
       headlineNameFirst: 'GUNA',

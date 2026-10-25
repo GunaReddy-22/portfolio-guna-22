@@ -44,6 +44,7 @@ export const HeroBlockSchema = BaseBlockSchema.extend({
     pillLink: z.string().nullish(),
     pillIsAnnouncement: z.boolean().nullish().default(false),
     pillAnnouncementTag: z.string().nullish().default('ANNOUNCEMENT'),
+    pillAnnouncementIcon: z.string().nullish().default(''),
     pillAnnouncementStyle: z.string().nullish().default('amber'),
     pillAnnouncementExpiresAt: z.string().nullish(),
     pillAnnouncementExpiryAction: z.enum(['hide', 'revert']).nullish().default('hide'),

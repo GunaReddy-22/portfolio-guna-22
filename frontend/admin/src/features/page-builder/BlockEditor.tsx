@@ -172,6 +172,77 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
     };
   };
 
+  const resolveAnnouncementIcon = (tag?: string | null, explicitIcon?: string | null): string => {
+    if (explicitIcon && explicitIcon.trim()) {
+      return explicitIcon.trim();
+    }
+    const rawTag = (tag || '').trim();
+    if (!rawTag) return '📢';
+
+    try {
+      const emojiMatch = rawTag.match(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u);
+      if (emojiMatch && emojiMatch[0]) {
+        return emojiMatch[0];
+      }
+    } catch {
+      // fallback
+    }
+
+    const normalized = rawTag.toUpperCase();
+    if (normalized.includes('WORK') || normalized.includes('JOB') || normalized.includes('HIRE') || normalized.includes('HIRING') || normalized.includes('CAREER') || normalized.includes('OPPORTUNIT')) {
+      return '💼';
+    }
+    if (normalized.includes('NEW') || normalized.includes('FRESH') || normalized.includes('SPARK') || normalized.includes('INTRODUC')) {
+      return '✨';
+    }
+    if (normalized.includes('UPDATE') || normalized.includes('LAUNCH') || normalized.includes('RELEASE') || normalized.includes('VERSION') || normalized.includes('SHIPPED') || normalized.includes('DEPLOY')) {
+      return '🚀';
+    }
+    if (normalized.includes('FEATURE') || normalized.includes('SPOTLIGHT') || normalized.includes('HIGHLIGHT') || normalized.includes('TARGET')) {
+      return '🎯';
+    }
+    if (normalized.includes('HOT') || normalized.includes('TRENDING') || normalized.includes('FIRE') || normalized.includes('POPULAR')) {
+      return '🔥';
+    }
+    if (normalized.includes('AWARD') || normalized.includes('ACHIEV') || normalized.includes('WIN') || normalized.includes('HONOR') || normalized.includes('CERTIF')) {
+      return '🏆';
+    }
+    if (normalized.includes('ALERT') || normalized.includes('URGENT') || normalized.includes('WARN') || normalized.includes('IMPORTANT')) {
+      return '🚨';
+    }
+    if (normalized.includes('STAR') || normalized.includes('SPECIAL')) {
+      return '⭐';
+    }
+    if (normalized.includes('BUG') || normalized.includes('FIX') || normalized.includes('PATCH')) {
+      return '🐛';
+    }
+    if (normalized.includes('EVENT') || normalized.includes('MEET') || normalized.includes('TALK') || normalized.includes('CONFERENCE')) {
+      return '🗓️';
+    }
+    if (normalized.includes('IDEA') || normalized.includes('TIP') || normalized.includes('THOUGHT')) {
+      return '💡';
+    }
+    if (normalized.includes('CELEBRAT') || normalized.includes('PARTY')) {
+      return '🎉';
+    }
+    if (normalized.includes('CODE') || normalized.includes('DEV') || normalized.includes('TECH') || normalized.includes('PROGRAM')) {
+      return '💻';
+    }
+
+    return '📢';
+  };
+
+  const extractAnnouncementTagText = (tag?: string | null): string => {
+    if (!tag) return '';
+    try {
+      const cleaned = tag.replace(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])+\s*/u, '').trim();
+      if (cleaned) return cleaned;
+    } catch {
+      // fallback
+    }
+    return tag.trim();
+  };
+
   switch (section.type) {
     case 'hero': {
       const stats = content.stats || [
@@ -194,6 +265,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
       const isAnnouncement = Boolean(content.pillIsAnnouncement);
       const announcementStyle = content.pillAnnouncementStyle || 'amber';
       const announcementTag = content.pillAnnouncementTag || 'ANNOUNCEMENT';
+      const cleanAnnouncementTag = extractAnnouncementTagText(announcementTag);
+      const activeAnnouncementIcon = resolveAnnouncementIcon(announcementTag, content.pillAnnouncementIcon);
       const expiryAction = content.pillAnnouncementExpiryAction || 'hide';
       const expiryStatus = getAnnouncementStatusInfo(content.pillAnnouncementExpiresAt, expiryAction);
 
@@ -238,12 +311,12 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
       const activeColorTheme = colorThemes[announcementStyle] || colorThemes.amber;
 
       const tagSuggestions = [
-        '📢 ANNOUNCEMENT',
-        '✨ NEW',
-        '🚀 UPDATE',
-        '💼 OPEN TO WORK',
-        '🎯 FEATURED',
-        '🔥 HOT',
+        { icon: '📢', label: 'ANNOUNCEMENT' },
+        { icon: '✨', label: 'NEW' },
+        { icon: '🚀', label: 'UPDATE' },
+        { icon: '💼', label: 'OPEN TO WORK' },
+        { icon: '🎯', label: 'FEATURED' },
+        { icon: '🔥', label: 'HOT' },
       ];
 
       return (
@@ -437,38 +510,94 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                       {/* Tag Input & Suggestions */}
                       <div>
                         <label className="cms-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span>Announcement Tag / Badge Label</span>
+                          <span>Announcement Tag / Badge Label &amp; Icon</span>
                           <span style={{ fontSize: '0.75rem', color: 'var(--cms-text-muted)' }}>Click a chip to apply</span>
                         </label>
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                          {tagSuggestions.map((tag) => (
+                          {tagSuggestions.map((item) => {
+                            const isSelected =
+                              cleanAnnouncementTag.toUpperCase() === item.label.toUpperCase() ||
+                              (content.pillAnnouncementTag && content.pillAnnouncementTag.trim().toUpperCase() === item.label.toUpperCase());
+                            return (
+                              <button
+                                key={item.label}
+                                type="button"
+                                className="cms-btn cms-btn-sm"
+                                style={{
+                                  padding: '4px 10px',
+                                  fontSize: '0.75rem',
+                                  background: isSelected ? 'var(--cms-amber)' : 'rgba(255, 255, 255, 0.05)',
+                                  color: isSelected ? '#000' : 'var(--cms-text-muted)',
+                                  border: isSelected ? '1px solid var(--cms-amber)' : '1px solid var(--cms-border)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  fontWeight: isSelected ? 700 : 500,
+                                }}
+                                onClick={() => {
+                                  updateContent('pillAnnouncementTag', item.label);
+                                  updateContent('pillAnnouncementIcon', item.icon);
+                                }}
+                              >
+                                <span>{item.icon}</span>
+                                <span>{item.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            className="cms-input"
+                            title="Announcement Logo / Emoji (auto-detected from title or pick below)"
+                            style={{
+                              width: '54px',
+                              textAlign: 'center',
+                              fontSize: '1.15rem',
+                              padding: '0.45rem',
+                              flexShrink: 0,
+                            }}
+                            placeholder={activeAnnouncementIcon}
+                            value={content.pillAnnouncementIcon || activeAnnouncementIcon}
+                            onChange={(e) => updateContent('pillAnnouncementIcon', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            className="cms-input"
+                            style={{ flex: 1 }}
+                            placeholder="ANNOUNCEMENT"
+                            value={content.pillAnnouncementTag || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              updateContent('pillAnnouncementTag', val);
+                              const autoIcon = resolveAnnouncementIcon(val);
+                              if (autoIcon) {
+                                updateContent('pillAnnouncementIcon', autoIcon);
+                              }
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.45rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--cms-text-muted)', marginRight: '4px' }}>Quick icon:</span>
+                          {['💼', '📢', '✨', '🚀', '🎯', '🔥', '🤝', '⚡', '🏆', '💡', '🎉', '🚨'].map((emoji) => (
                             <button
-                              key={tag}
+                              key={emoji}
                               type="button"
                               className="cms-btn cms-btn-sm"
                               style={{
-                                padding: '3px 8px',
-                                fontSize: '0.75rem',
-                                background: content.pillAnnouncementTag === tag.replace(/^[^a-zA-Z0-9]+/, '') ? 'var(--cms-amber)' : 'rgba(255, 255, 255, 0.05)',
-                                color: content.pillAnnouncementTag === tag.replace(/^[^a-zA-Z0-9]+/, '') ? '#000' : 'var(--cms-text-muted)',
-                                border: '1px solid var(--cms-border)',
+                                padding: '2px 7px',
+                                fontSize: '0.85rem',
+                                background: activeAnnouncementIcon === emoji ? 'rgba(245, 158, 11, 0.25)' : 'rgba(255, 255, 255, 0.04)',
+                                border: activeAnnouncementIcon === emoji ? '1px solid var(--cms-amber)' : '1px solid var(--cms-border)',
+                                lineHeight: 1,
                               }}
-                              onClick={() => {
-                                const clean = tag.replace(/^[^a-zA-Z0-9]+/, '');
-                                updateContent('pillAnnouncementTag', clean);
-                              }}
+                              onClick={() => updateContent('pillAnnouncementIcon', emoji)}
+                              title={`Set icon to ${emoji}`}
                             >
-                              {tag}
+                              {emoji}
                             </button>
                           ))}
                         </div>
-                        <input
-                          type="text"
-                          className="cms-input"
-                          placeholder="ANNOUNCEMENT"
-                          value={content.pillAnnouncementTag || ''}
-                          onChange={(e) => updateContent('pillAnnouncementTag', e.target.value)}
-                        />
                       </div>
 
                       {/* Highlight Color Theme Selector */}
@@ -725,8 +854,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                               lineHeight: 1,
                             }}
                           >
-                            <span>📢</span>
-                            <span>{content.pillAnnouncementTag || 'ANNOUNCEMENT'}</span>
+                            <span className="pill-announcement-icon">{activeAnnouncementIcon}</span>
+                            <span>{cleanAnnouncementTag || 'ANNOUNCEMENT'}</span>
                           </span>
                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {content.pillText || 'Ex-Full Stack Devloper Intern @ ZenithIndia'}
