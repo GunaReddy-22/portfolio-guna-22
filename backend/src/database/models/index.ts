@@ -6,4 +6,5 @@ export * from './Media.js';
 export * from './Form.js';
 export * from './Submission.js';
 export * from './AuditLog.js';
+export * from './VisitorLog.js';
 

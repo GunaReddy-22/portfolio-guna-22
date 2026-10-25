@@ -1,6 +1,7 @@
 import { renderBlock } from './renderers.js';
 import { BASELINE_BLOCKS } from './baseline-blocks.js';
 import { escapeHtml, escapeAttr, sanitizeUrl } from './sanitize.js';
+import { initVisitorAnalytics } from './analytics.js';
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
@@ -1047,6 +1048,7 @@ function boot() {
   initMailtoHandler();
   hydratePortfolio();
   initLanguageSwitcher();
+  initVisitorAnalytics(API_BASE_URL);
 }
 
 if (document.readyState === 'loading') {

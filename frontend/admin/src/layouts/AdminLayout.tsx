@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Activity,
   FileText,
   Sliders,
   Palette,
@@ -31,6 +32,7 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { label: 'Overview', to: '/', icon: LayoutDashboard },
+    { label: 'Visitor Analytics', to: '/analytics', icon: Activity },
     { label: 'Pages', to: '/pages', icon: FileText },
     { label: 'Visual Builder', to: '/builder', icon: Sliders },
     { label: 'Theme Studio', to: '/theme', icon: Palette },

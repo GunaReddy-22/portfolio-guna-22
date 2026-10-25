@@ -10,6 +10,8 @@ import {
   ExternalLink,
   Layers,
   Sparkles,
+  Activity,
+  Globe2,
 } from 'lucide-react';
 import { api, getPublicSiteUrl } from '../../lib/api';
 
@@ -26,6 +28,9 @@ export const Overview: React.FC = () => {
     draftRevision: 0,
     lastPublishedAt: null as string | null,
     homePageId: '',
+    visitorCount: 0,
+    uniqueVisitors: 0,
+    topCountry: '',
   });
   const [recentSubmissions, setRecentSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,11 +38,12 @@ export const Overview: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [pages, forms, submissionsRes, mediaRes] = await Promise.all([
+        const [pages, forms, submissionsRes, mediaRes, analyticsRes] = await Promise.all([
           api.getPages(),
           api.getForms(),
           api.getSubmissions({ limit: 5 }),
           api.getMedia({ limit: 1 }),
+          api.getAnalyticsOverview('7d').catch(() => null),
         ]);
 
         const home = pages.find((p: any) => p.slug === 'home') || pages[0];
@@ -53,6 +59,9 @@ export const Overview: React.FC = () => {
           draftRevision: home?.draftRevision || 0,
           lastPublishedAt: home?.updatedAt || null,
           homePageId: home?._id || 'home',
+          visitorCount: analyticsRes?.totalVisits || 0,
+          uniqueVisitors: analyticsRes?.uniqueVisitors || 0,
+          topCountry: analyticsRes?.topCountries?.[0]?.country || '',
         });
 
         setRecentSubmissions(submissionsRes?.items || []);
@@ -148,6 +157,18 @@ export const Overview: React.FC = () => {
             <div className="cms-stat-label">Active Pages</div>
           </div>
         </div>
+
+        <Link to="/analytics" className="cms-stat-card" style={{ textDecoration: 'none' }}>
+          <div className="cms-stat-icon amber">
+            <Activity size={22} />
+          </div>
+          <div>
+            <div className="cms-stat-value">{stats.visitorCount}</div>
+            <div className="cms-stat-label">
+              Portfolio Visitors {stats.uniqueVisitors > 0 && `(${stats.uniqueVisitors} unique)`}
+            </div>
+          </div>
+        </Link>
 
         <div className="cms-stat-card">
           <div className="cms-stat-icon teal">

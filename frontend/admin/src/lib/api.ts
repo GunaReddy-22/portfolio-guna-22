@@ -392,4 +392,26 @@ export const api = {
     const qs = formId ? `?formId=${formId}` : '';
     return apiRequest<string>(`/api/v1/admin/submissions/export${qs}`);
   },
+
+  // Visitor Analytics
+  async getAnalyticsOverview(period: string = '7d') {
+    return apiRequest<any>(`/api/v1/admin/analytics/overview?period=${encodeURIComponent(period)}`);
+  },
+  async getAnalyticsLiveLogs(params?: { page?: number; limit?: number; search?: string; device?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', params.page.toString());
+    if (params?.limit) qs.set('limit', params.limit.toString());
+    if (params?.search) qs.set('search', params.search);
+    if (params?.device) qs.set('device', params.device);
+    return apiRequest<any>(`/api/v1/admin/analytics/live?${qs.toString()}`);
+  },
+  async clearAnalyticsLogs() {
+    return apiRequest<any>('/api/v1/admin/analytics/clear', {
+      method: 'DELETE',
+    });
+  },
+  getAnalyticsExportUrl() {
+    return resolveApiUrl('/api/v1/admin/analytics/export');
+  },
 };
+

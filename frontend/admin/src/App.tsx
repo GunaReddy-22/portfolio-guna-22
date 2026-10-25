@@ -15,6 +15,7 @@ import { FormsManager } from './features/forms/FormsManager';
 import { SubmissionsInbox } from './features/submissions/SubmissionsInbox';
 import { RevisionHistory } from './features/revisions/RevisionHistory';
 import { SiteSettings } from './features/settings/SiteSettings';
+import { VisitorAnalytics } from './features/analytics/VisitorAnalytics';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +65,7 @@ export const App: React.FC = () => {
               }
             >
               <Route index element={<Overview />} />
+              <Route path="analytics" element={<VisitorAnalytics />} />
               <Route path="pages" element={<PagesList />} />
               <Route path="builder" element={<PageBuilder />} />
               <Route path="theme" element={<ThemeStudio />} />

@@ -20,10 +20,14 @@ import settingsRoutes from './modules/settings/settings.routes.js';
 import mediaRoutes from './modules/media/media.routes.js';
 import formsRoutes from './modules/forms/forms.routes.js';
 import submissionsRoutes from './modules/submissions/submissions.routes.js';
+import { publicAnalyticsRouter, adminAnalyticsRouter } from './modules/analytics/analytics.routes.js';
 import { renderFeedbackPage } from './modules/public/public.controller.js';
 
 export function createApp(): Express {
   const app = express();
+
+  // Trust reverse proxy for client IP resolution (Render, Cloudflare, GoDaddy)
+  app.set('trust proxy', 1);
 
   // Request ID
   app.use(requestIdMiddleware);
@@ -202,6 +206,7 @@ export function createApp(): Express {
 
   // API v1 Routing
   app.use('/api/v1/public', publicRoutes);
+  app.use('/api/v1/public/analytics', publicAnalyticsRouter);
   app.use('/api/v1/admin/auth', authRoutes);
   app.use('/api/v1/admin/pages', pagesRoutes);
   app.use('/api/v1/admin/theme', themeRoutes);
@@ -209,6 +214,7 @@ export function createApp(): Express {
   app.use('/api/v1/admin/media', mediaRoutes);
   app.use('/api/v1/admin/forms', formsRoutes);
   app.use('/api/v1/admin/submissions', submissionsRoutes);
+  app.use('/api/v1/admin/analytics', adminAnalyticsRouter);
 
   // Standalone Public Feedback Forms (Fallback & direct access)
   app.get(['/feedback/:slug', '/f/:slug', '/forms/:slug/view'], renderFeedbackPage);
