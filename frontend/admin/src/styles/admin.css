@@ -10,7 +10,6 @@ body,
   background-color: #0a0d14 !important;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
 }
 
 *,
@@ -92,8 +91,10 @@ body,
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  bottom: 0;
   height: 100vh;
   z-index: 40;
   transition: transform 0.25s ease;
@@ -274,7 +275,8 @@ body,
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow-x: hidden;
+  margin-left: 260px;
+  width: calc(100% - 260px);
 }
 
 .cms-topbar {
@@ -925,6 +927,7 @@ body,
   }
 
   .cms-main-content {
+    margin-left: 0;
     width: 100%;
     min-width: 0;
   }
