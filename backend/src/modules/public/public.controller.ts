@@ -195,9 +195,19 @@ export async function renderFeedbackPage(req: Request, res: Response, next: Next
     const hostname = hostHeader.split(':')[0].toLowerCase();
     const isProductionHost = hostname.endsWith('gunasai.in');
 
-    const portfolioUrl = (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production' || isProductionHost)
-      ? (env.PUBLIC_SITE_URL && env.PUBLIC_SITE_URL.startsWith('https://') ? env.PUBLIC_SITE_URL : 'https://gunasai.in').replace(/\/+$/, '')
-      : (env.PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    let portfolioUrl = 'https://gunasai.in';
+    if (isProductionHost || env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production') {
+      portfolioUrl = 'https://gunasai.in';
+    } else if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost')) {
+      portfolioUrl = 'http://localhost:3000';
+    } else if (
+      env.PUBLIC_SITE_URL &&
+      !env.PUBLIC_SITE_URL.includes('forms.') &&
+      !env.PUBLIC_SITE_URL.includes('api.') &&
+      !env.PUBLIC_SITE_URL.includes('admin.')
+    ) {
+      portfolioUrl = env.PUBLIC_SITE_URL.replace(/\/+$/, '');
+    }
 
     if (!form) {
       return res.status(404).send(`<!DOCTYPE html>

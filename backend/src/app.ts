@@ -170,9 +170,12 @@ export function createApp(): Express {
         return next();
       }
 
-      // Root access on forms.gunasai.in: redirect to main portfolio or default to app-feedback
+      // Root access on forms.gunasai.in: redirect to main portfolio site (gunasai.in)
       if (req.path === '/' || req.path === '') {
-        return res.redirect(302, `${env.FORMS_BASE_URL}/app-feedback`);
+        const targetPortfolio = (isProduction || hostname.endsWith('gunasai.in'))
+          ? 'https://gunasai.in'
+          : (env.PUBLIC_SITE_URL && !env.PUBLIC_SITE_URL.includes('forms.') ? env.PUBLIC_SITE_URL : 'http://localhost:3000');
+        return res.redirect(302, targetPortfolio);
       }
 
       // Match clean slug or /feedback/:slug or /f/:slug

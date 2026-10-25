@@ -29,7 +29,17 @@ export function renderFeedbackFormHtml(
   baseUrl: string = '',
   portfolioUrl: string = 'https://gunasai.in'
 ): string {
-  const homeUrl = escapeHtml(portfolioUrl || 'https://gunasai.in');
+  let homeUrl = portfolioUrl || 'https://gunasai.in';
+  if (
+    homeUrl.includes('forms.gunasai.in') ||
+    homeUrl.includes('api.gunasai.in') ||
+    homeUrl.includes('admin.gunasai.in') ||
+    homeUrl === '/' ||
+    homeUrl === ''
+  ) {
+    homeUrl = 'https://gunasai.in';
+  }
+  const safeHomeUrl = escapeHtml(homeUrl);
   const formTitle = escapeHtml(form.title || 'App Feedback Form');
   const formattedHeroTitle = formatTitleWithSerifAccent(form.title || 'App Feedback Form');
   const formDescription = escapeHtml(
@@ -905,10 +915,10 @@ export function renderFeedbackFormHtml(
 
   <!-- Top Navigation Header -->
   <nav class="site-nav">
-    <a href="${homeUrl}" class="logo">
+    <a href="${safeHomeUrl}" class="logo">
       <span>GS</span><span class="logo-dot">.</span>
     </a>
-    <a href="${homeUrl}" class="nav-cta">
+    <a href="${safeHomeUrl}" class="nav-cta">
       <span>Portfolio Home</span> &#x2197;
     </a>
   </nav>
@@ -961,9 +971,14 @@ export function renderFeedbackFormHtml(
         </div>
         <h2 class="success-title">Feedback Received!</h2>
         <p class="success-body">${successMessage}</p>
-        <button type="button" id="reset_btn" class="btn-secondary">
-          <span>Submit Another Response</span> &#x21ba;
-        </button>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
+          <button type="button" id="reset_btn" class="btn-secondary">
+            <span>Submit Another Response</span> &#x21ba;
+          </button>
+          <a href="${safeHomeUrl}" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            <span>Back to Portfolio</span> &#x2197;
+          </a>
+        </div>
       </div>
     </div>
   </main>

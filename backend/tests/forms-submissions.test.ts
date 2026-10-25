@@ -217,6 +217,15 @@ describe('Forms & Submissions Inbox API', () => {
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toContain('<a href="https://gunasai.in">Return to Portfolio</a>');
   });
+
+  it('redirects root access on forms.gunasai.in directly to https://gunasai.in', async () => {
+    const res = await request(app)
+      .get('/')
+      .set('Host', 'forms.gunasai.in');
+
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('https://gunasai.in');
+  });
 });
 
 
