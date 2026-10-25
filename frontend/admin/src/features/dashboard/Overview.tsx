@@ -78,7 +78,7 @@ export const Overview: React.FC = () => {
     <div>
       {/* Top Banner / System Status */}
       <div
-        className="cms-card"
+        className="cms-card cms-overview-banner"
         style={{
           background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(20, 184, 166, 0.04) 100%)',
           borderColor: 'rgba(245, 158, 11, 0.2)',
@@ -120,7 +120,7 @@ export const Overview: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="cms-overview-banner-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link to="/builder" className="cms-btn cms-btn-primary cms-btn-sm">
             <Layers size={15} />
             <span>Open Visual Builder</span>

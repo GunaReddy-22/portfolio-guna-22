@@ -44,6 +44,15 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="cms-app">
       <div className="cms-layout">
+        {/* Mobile Sidebar Backdrop */}
+        {mobileOpen && (
+          <div
+            className="cms-sidebar-backdrop"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Sidebar */}
         <aside className={`cms-sidebar ${mobileOpen ? 'open' : ''}`}>
           <div className="cms-sidebar-header">
@@ -54,7 +63,17 @@ export const AdminLayout: React.FC = () => {
                 <div style={{ fontSize: '0.7rem', color: 'var(--cms-text-muted)' }}>Portfolio Admin</div>
               </div>
             </NavLink>
-            <span className="cms-brand-badge">v1.0</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="cms-brand-badge">v1.0</span>
+              <button
+                type="button"
+                className="cms-sidebar-close-btn"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close sidebar"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           <nav className="cms-sidebar-nav">
@@ -105,10 +124,11 @@ export const AdminLayout: React.FC = () => {
           <header className="cms-topbar">
             <div className="cms-topbar-left">
               <button
-                className="cms-btn cms-btn-icon cms-btn-ghost"
+                type="button"
+                className="cms-btn cms-btn-icon cms-btn-ghost cms-mobile-toggle"
                 onClick={() => setMobileOpen(!mobileOpen)}
-                style={{ display: 'none' }} // shown via media query or toggle
                 id="cms-mobile-toggle"
+                aria-label="Toggle navigation"
               >
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -131,7 +151,7 @@ export const AdminLayout: React.FC = () => {
                 className="cms-btn cms-btn-secondary cms-btn-sm"
               >
                 <ExternalLink size={14} />
-                <span>View Live Site</span>
+                <span className="cms-topbar-action-label">View Live Site</span>
               </a>
             </div>
           </header>

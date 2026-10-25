@@ -488,6 +488,7 @@ export const PageBuilder: React.FC = () => {
     <div>
       {/* Top Toolbar */}
       <div
+        className="cms-builder-topbar"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -498,7 +499,7 @@ export const PageBuilder: React.FC = () => {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>
               Visual Builder: {page?.title || 'Page'}
             </h2>
@@ -521,7 +522,7 @@ export const PageBuilder: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="cms-builder-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
             onClick={handleSaveDraft}
             disabled={saving || !isDirty}
