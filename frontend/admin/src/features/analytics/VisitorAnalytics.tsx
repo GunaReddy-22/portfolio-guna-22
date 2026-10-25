@@ -18,6 +18,14 @@ import {
   ExternalLink,
   ShieldCheck,
   TrendingUp,
+  X,
+  Compass,
+  Wifi,
+  MapPin,
+  Calendar,
+  Layers,
+  ChevronRight,
+  Filter,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CmsLoadingState } from '../../components/CmsLoadingState';
@@ -35,6 +43,7 @@ export const VisitorAnalytics: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
   const [clearing, setClearing] = useState<boolean>(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<any | null>(null);
 
   const autoRefreshTimerRef = useRef<any>(null);
 
@@ -48,17 +57,23 @@ export const VisitorAnalytics: React.FC = () => {
       setOverview(overviewData);
       setLogs(liveData?.items || []);
       setTotalLogs(liveData?.total || 0);
+
+      // Keep selected visitor synced if inspector is open
+      if (selectedVisitor) {
+        const updated = liveData?.items?.find((item: any) => item._id === selectedVisitor._id);
+        if (updated) setSelectedVisitor(updated);
+      }
     } catch (err) {
       console.error('Failed to load visitor analytics:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [period, page, search, deviceFilter]);
+  }, [period, page, search, deviceFilter, selectedVisitor]);
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [period, page, search, deviceFilter]);
 
   // Auto-refresh interval (15s)
   useEffect(() => {
@@ -74,7 +89,8 @@ export const VisitorAnalytics: React.FC = () => {
     };
   }, [autoRefresh, loadData]);
 
-  const handleCopyIp = (ip: string) => {
+  const handleCopyIp = (ip: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     navigator.clipboard.writeText(ip);
     setCopiedIp(ip);
     setTimeout(() => setCopiedIp(null), 1500);
@@ -87,11 +103,44 @@ export const VisitorAnalytics: React.FC = () => {
     try {
       setClearing(true);
       await api.clearAnalyticsLogs();
+      setSelectedVisitor(null);
       await loadData();
     } catch (err: any) {
       alert(`Failed to clear logs: ${err?.message || 'Error'}`);
     } finally {
       setClearing(false);
+    }
+  };
+
+  const isVisitorActive = (lastActiveStr?: string, visitedAtStr?: string) => {
+    const ts = lastActiveStr || visitedAtStr;
+    if (!ts) return false;
+    const diff = Date.now() - new Date(ts).getTime();
+    return diff < 45000; // active within last 45 seconds
+  };
+
+  const formatExactTime = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch {
+      return '—';
+    }
+  };
+
+  const formatFullDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch {
+      return '—';
     }
   };
 
@@ -116,19 +165,38 @@ export const VisitorAnalytics: React.FC = () => {
     return `${m}m ${s}s`;
   };
 
-  const getCountryFlag = (code?: string) => {
-    if (!code || code === 'XX' || code.length !== 2) return '🌐';
-    const codePoints = code
-      .toUpperCase()
-      .split('')
-      .map((char) => 127397 + char.charCodeAt(0));
-    return String.fromCodePoint(...codePoints);
+  const renderCountryFlag = (code?: string, size: 'sm' | 'md' = 'sm') => {
+    if (!code || code === 'XX' || code.length !== 2) {
+      return <Globe2 size={size === 'md' ? 20 : 16} style={{ color: 'var(--cms-text-muted)' }} />;
+    }
+    const lower = code.toLowerCase();
+    const width = size === 'md' ? 24 : 18;
+    const height = size === 'md' ? 18 : 13;
+    return (
+      <img
+        src={`https://flagcdn.com/24x18/${lower}.png`}
+        srcSet={`https://flagcdn.com/48x36/${lower}.png 2x`}
+        alt={code}
+        width={width}
+        height={height}
+        style={{
+          borderRadius: '2px',
+          objectFit: 'cover',
+          display: 'inline-block',
+          verticalAlign: 'middle',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        }}
+        onError={(e) => {
+          (e.target as HTMLElement).style.display = 'none';
+        }}
+      />
+    );
   };
 
   const getDeviceIcon = (device: string) => {
     switch (device) {
       case 'mobile':
-        return <Smartphone size={14} className="text-teal" style={{ color: 'var(--cms-teal)' }} />;
+        return <Smartphone size={14} style={{ color: 'var(--cms-teal)' }} />;
       case 'tablet':
         return <Tablet size={14} style={{ color: 'var(--cms-violet)' }} />;
       case 'bot':
@@ -201,7 +269,7 @@ export const VisitorAnalytics: React.FC = () => {
             </span>
           </div>
           <p className="cms-page-subtitle">
-            Track who is viewing your portfolio, geographic origin, referral channels, and device specifications
+            Elite real-time session telemetry: arrival in-time, departure out-time, precise city/ISP resolution, and section journeys
           </p>
         </div>
 
@@ -371,14 +439,14 @@ export const VisitorAnalytics: React.FC = () => {
               <Globe2 size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--cms-text)', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>{getCountryFlag(topCountry?.code)}</span>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--cms-text)', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{renderCountryFlag(topCountry?.code, 'md')}</span>
             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {topCountry?.country || 'No visits yet'}
             </span>
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
-            {topCity ? `${topCity.city} (${topCountry?.count || 0} hits)` : 'Awaiting traffic'}
+            {topCity ? `${topCity.city} (${topCountry?.count || 0} visits)` : 'Awaiting traffic'}
           </div>
         </div>
 
@@ -422,7 +490,7 @@ export const VisitorAnalytics: React.FC = () => {
               Top Visitor Locations
             </h3>
             <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)' }}>
-              By Country & City
+              Country & City
             </span>
           </div>
 
@@ -431,7 +499,7 @@ export const VisitorAnalytics: React.FC = () => {
               No geographic visitor data recorded for this time period yet.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {overview.topCountries.map((c: any, i: number) => {
                 const total = overview.totalVisits || 1;
                 const pct = Math.round((c.count / total) * 100);
@@ -439,7 +507,7 @@ export const VisitorAnalytics: React.FC = () => {
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '16px' }}>{getCountryFlag(c.code)}</span>
+                        <span>{renderCountryFlag(c.code)}</span>
                         <span style={{ fontWeight: 600 }}>{c.country}</span>
                         <span style={{ fontSize: '11px', color: 'var(--cms-text-muted)', fontFamily: 'var(--cms-font-mono)' }}>
                           ({c.code})
@@ -478,7 +546,7 @@ export const VisitorAnalytics: React.FC = () => {
               Traffic Sources & Platforms
             </h3>
             <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)' }}>
-              Inbound Referrers
+              Inbound Channels
             </span>
           </div>
 
@@ -580,7 +648,7 @@ export const VisitorAnalytics: React.FC = () => {
               </span>
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--cms-text-secondary)', margin: '4px 0 0' }}>
-              Chronological log of individual visitors, client network IPs, locations, and visited paths
+              Click any row to inspect full visitor details, network carrier, in/out timestamps, and section journey
             </p>
           </div>
 
@@ -636,24 +704,74 @@ export const VisitorAnalytics: React.FC = () => {
             <table className="cms-table" style={{ width: '100%', fontSize: '12.5px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '110px' }}>When</th>
-                  <th style={{ width: '160px' }}>Visitor IP</th>
-                  <th>Location</th>
+                  <th style={{ width: '90px' }}>In Time</th>
+                  <th style={{ width: '105px' }}>Out / Status</th>
+                  <th style={{ width: '150px' }}>Visitor IP</th>
+                  <th>Location (City & Country)</th>
+                  <th>ISP / Carrier</th>
                   <th>Device / Browser</th>
                   <th>Referral Origin</th>
                   <th>Section Viewed</th>
-                  <th style={{ textAlign: 'right' }}>Duration</th>
+                  <th style={{ textAlign: 'right', width: '80px' }}>Duration</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log: any) => {
                   const refBadge = getReferrerBadge(log.referrerSource);
                   const isCopied = copiedIp === log.ip;
+                  const active = isVisitorActive(log.lastActiveAt, log.visitedAt);
+
+                  const displayCity = log.city && log.city !== 'Unknown' ? log.city : '';
+                  const displayRegion = log.region && log.region !== 'Unknown' ? log.region : '';
+                  const displayCountry = log.country && log.country !== 'Unknown' ? log.country : 'Unknown';
+
+                  let locationText = displayCountry;
+                  if (displayCity && displayRegion) {
+                    locationText = `${displayCity}, ${displayRegion}, ${displayCountry}`;
+                  } else if (displayCity) {
+                    locationText = `${displayCity}, ${displayCountry}`;
+                  }
+
+                  const displayIsp = log.isp && log.isp !== 'Cloudflare Network' ? log.isp : (log.org || 'Direct Network');
+
                   return (
-                    <tr key={log._id}>
-                      {/* When */}
-                      <td style={{ color: 'var(--cms-text-muted)', fontFamily: 'var(--cms-font-mono)', fontSize: '11px' }}>
-                        {formatRelativeTime(log.visitedAt)}
+                    <tr
+                      key={log._id}
+                      onClick={() => setSelectedVisitor(log)}
+                      style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                    >
+                      {/* In Time */}
+                      <td style={{ color: 'var(--cms-text-muted)', fontFamily: 'var(--cms-font-mono)', fontSize: '11px' }} title={formatFullDate(log.visitedAt)}>
+                        {formatExactTime(log.visitedAt)}
+                        <div style={{ fontSize: '10px', color: 'var(--cms-text-secondary)' }}>{formatRelativeTime(log.visitedAt)}</div>
+                      </td>
+
+                      {/* Out Time / Live Status */}
+                      <td>
+                        {active ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '2px 8px',
+                              borderRadius: '100px',
+                              fontSize: '10.5px',
+                              fontFamily: 'var(--cms-font-mono)',
+                              fontWeight: 700,
+                              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                              color: 'var(--cms-success)',
+                              border: '1px solid rgba(16, 185, 129, 0.35)',
+                            }}
+                          >
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--cms-success)' }} />
+                            Active Now
+                          </span>
+                        ) : (
+                          <div style={{ fontFamily: 'var(--cms-font-mono)', fontSize: '11px', color: 'var(--cms-text-muted)' }} title={formatFullDate(log.lastActiveAt || log.visitedAt)}>
+                            {formatExactTime(log.lastActiveAt || log.visitedAt)}
+                          </div>
+                        )}
                       </td>
 
                       {/* IP with Copy Button */}
@@ -670,7 +788,7 @@ export const VisitorAnalytics: React.FC = () => {
                           </span>
                           <button
                             type="button"
-                            onClick={() => handleCopyIp(log.ip)}
+                            onClick={(e) => handleCopyIp(log.ip, e)}
                             title="Copy IP"
                             style={{
                               background: 'transparent',
@@ -687,20 +805,24 @@ export const VisitorAnalytics: React.FC = () => {
 
                       {/* Location */}
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '15px' }}>{getCountryFlag(log.countryCode)}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{renderCountryFlag(log.countryCode)}</span>
                           <div>
-                            <span style={{ fontWeight: 600 }}>{log.city || 'Unknown'}</span>
-                            <span style={{ color: 'var(--cms-text-muted)', fontSize: '11.5px' }}>
-                              , {log.country || 'Unknown'}
-                            </span>
-                            {log.isp && (
-                              <div style={{ fontSize: '10px', color: 'var(--cms-text-muted)', fontFamily: 'var(--cms-font-mono)' }}>
-                                {log.isp}
-                              </div>
+                            <span style={{ fontWeight: 600 }}>{displayCity || displayCountry}</span>
+                            {displayCity && (
+                              <span style={{ color: 'var(--cms-text-muted)', fontSize: '11.5px' }}>
+                                , {displayRegion ? `${displayRegion}, ` : ''}{displayCountry}
+                              </span>
                             )}
                           </div>
                         </div>
+                      </td>
+
+                      {/* ISP / Carrier */}
+                      <td>
+                        <span style={{ fontSize: '11.5px', color: 'var(--cms-text-secondary)', fontFamily: 'var(--cms-font-mono)' }}>
+                          {displayIsp}
+                        </span>
                       </td>
 
                       {/* Device & OS */}
@@ -759,6 +881,242 @@ export const VisitorAnalytics: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Visitor Session Inspector Modal (Elite Platform Detail View) */}
+      {selectedVisitor && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+          onClick={() => setSelectedVisitor(null)}
+        >
+          <div
+            className="cms-card"
+            style={{
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              backgroundColor: 'var(--cms-bg-card)',
+              border: '1px solid var(--cms-border-focus)',
+              boxShadow: 'var(--cms-shadow-lg)',
+              borderRadius: 'var(--cms-radius-lg)',
+              padding: '1.75rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--cms-border)', paddingBottom: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{renderCountryFlag(selectedVisitor.countryCode, 'md')}</span>
+                  <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
+                    {selectedVisitor.city ? `${selectedVisitor.city}, ${selectedVisitor.country}` : (selectedVisitor.country || 'Visitor Telemetry')}
+                  </h2>
+                  {isVisitorActive(selectedVisitor.lastActiveAt, selectedVisitor.visitedAt) ? (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '100px',
+                        fontSize: '11px',
+                        fontFamily: 'var(--cms-font-mono)',
+                        fontWeight: 700,
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        color: 'var(--cms-success)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                      }}
+                    >
+                      🟢 Active Now
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '100px',
+                        fontSize: '11px',
+                        fontFamily: 'var(--cms-font-mono)',
+                        backgroundColor: 'rgba(100, 116, 139, 0.15)',
+                        color: 'var(--cms-text-muted)',
+                      }}
+                    >
+                      Session Ended
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '13px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-secondary)' }}>
+                  <span>IP: {selectedVisitor.ip}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyIp(selectedVisitor.ip)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--cms-amber)', cursor: 'pointer', padding: '0 4px' }}
+                  >
+                    {copiedIp === selectedVisitor.ip ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="cms-sidebar-close-btn"
+                onClick={() => setSelectedVisitor(null)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--cms-text-muted)', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* In-Time & Out-Time Big Display */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '1rem',
+                backgroundColor: 'var(--cms-surface)',
+                borderRadius: 'var(--cms-radius-md)',
+                padding: '1.25rem',
+                marginBottom: '1.5rem',
+                border: '1px solid var(--cms-border)',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                  In Time (Arrival)
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-amber)', fontFamily: 'var(--cms-font-mono)' }}>
+                  {formatExactTime(selectedVisitor.visitedAt)}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                  {formatFullDate(selectedVisitor.visitedAt)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                  Out Time (Last Active)
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-teal)', fontFamily: 'var(--cms-font-mono)' }}>
+                  {formatExactTime(selectedVisitor.lastActiveAt || selectedVisitor.visitedAt)}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                  {formatFullDate(selectedVisitor.lastActiveAt || selectedVisitor.visitedAt)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                  Total Duration
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-text)', fontFamily: 'var(--cms-font-mono)' }}>
+                  {formatDuration(selectedVisitor.durationSeconds)}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                  Session duration
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Grid: Location & Network */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.5rem' }}>
+              {/* Location Card */}
+              <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={14} style={{ color: 'var(--cms-teal)' }} /> Location Details
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12.5px' }}>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>City:</strong> {selectedVisitor.city || '—'}</div>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Region/State:</strong> {selectedVisitor.region || '—'}</div>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Country:</strong> {selectedVisitor.country} ({selectedVisitor.countryCode})</div>
+                  {selectedVisitor.zip && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Postal Code:</strong> {selectedVisitor.zip}</div>}
+                  {selectedVisitor.timezone && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Timezone:</strong> {selectedVisitor.timezone}</div>}
+                </div>
+              </div>
+
+              {/* Network / ISP Card */}
+              <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Wifi size={14} style={{ color: 'var(--cms-amber)' }} /> Network & Carrier
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12.5px' }}>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>ISP:</strong> {selectedVisitor.isp || '—'}</div>
+                  {selectedVisitor.org && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Org:</strong> {selectedVisitor.org}</div>}
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Device:</strong> <span style={{ textTransform: 'capitalize' }}>{selectedVisitor.deviceType}</span></div>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Operating System:</strong> {selectedVisitor.os}</div>
+                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Browser:</strong> {selectedVisitor.browser} {selectedVisitor.browserVersion}</div>
+                  {selectedVisitor.screenResolution && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Resolution:</strong> {selectedVisitor.screenResolution}</div>}
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Journey & Sections */}
+            <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Compass size={14} style={{ color: 'var(--cms-violet)' }} /> Visitor Exploration Journey
+              </h4>
+              <div style={{ fontSize: '12.5px', marginBottom: '8px' }}>
+                <strong style={{ color: 'var(--cms-text-muted)' }}>Referral Channel:</strong>{' '}
+                <span
+                  style={{
+                    display: 'inline-block',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    backgroundColor: getReferrerBadge(selectedVisitor.referrerSource).bg,
+                    color: getReferrerBadge(selectedVisitor.referrerSource).color,
+                    border: `1px solid ${getReferrerBadge(selectedVisitor.referrerSource).border}`,
+                    marginLeft: '4px',
+                  }}
+                >
+                  {getReferrerBadge(selectedVisitor.referrerSource).label}
+                </span>
+                {selectedVisitor.referrer && selectedVisitor.referrer !== 'Direct' && (
+                  <div style={{ fontSize: '11.5px', color: 'var(--cms-text-secondary)', marginTop: '4px', wordBreak: 'break-all' }}>
+                    Origin: {selectedVisitor.referrer}
+                  </div>
+                )}
+              </div>
+
+              {selectedVisitor.sections && selectedVisitor.sections.length > 0 && (
+                <div style={{ marginTop: '10px' }}>
+                  <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', marginBottom: '6px' }}>
+                    SECTIONS VIEWED IN THIS SESSION:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                    {selectedVisitor.sections.map((sec: string, idx: number) => (
+                      <React.Fragment key={idx}>
+                        <span
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: 'rgba(255,200,74,0.08)',
+                            border: '1px solid rgba(255,200,74,0.25)',
+                            borderRadius: '4px',
+                            color: 'var(--cms-amber)',
+                            fontSize: '11px',
+                            fontFamily: 'var(--cms-font-mono)',
+                          }}
+                        >
+                          {sec || '/'}
+                        </span>
+                        {idx < selectedVisitor.sections.length - 1 && (
+                          <ChevronRight size={12} style={{ color: 'var(--cms-text-muted)' }} />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

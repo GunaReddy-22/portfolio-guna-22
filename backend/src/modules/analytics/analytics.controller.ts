@@ -30,6 +30,7 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
 
     // Resolve Geolocation asynchronously
     const geo = await resolveGeoLocation(ip, req.headers);
+    const now = new Date();
 
     // Save record asynchronously without holding up response
     const logEntry = new VisitorLog({
@@ -38,10 +39,14 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
       countryCode: geo.countryCode,
       region: geo.region,
       city: geo.city,
+      zip: geo.zip || '',
+      timezone: geo.timezone || '',
       isp: geo.isp,
+      org: geo.org || '',
       lat: geo.lat,
       lon: geo.lon,
       path,
+      sections: [path],
       referrer,
       referrerSource,
       deviceType: uaResult.deviceType,
@@ -52,7 +57,8 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
       language: language.split(',')[0],
       sessionId,
       isBot: uaResult.isBot,
-      visitedAt: new Date(),
+      visitedAt: now,
+      lastActiveAt: now,
     });
 
     await logEntry.save();
@@ -78,9 +84,16 @@ export async function trackHeartbeat(req: Request, res: Response): Promise<void>
       return;
     }
 
-    const update: any = { $set: { durationSeconds: Math.min(durationSeconds, 86400) } };
+    const now = new Date();
+    const update: any = {
+      $set: {
+        durationSeconds: Math.min(durationSeconds, 86400),
+        lastActiveAt: now,
+      },
+    };
     if (typeof path === 'string' && path.trim()) {
       update.$set.path = path.trim();
+      update.$addToSet = { sections: path.trim() };
     }
 
     await VisitorLog.findOneAndUpdate(
@@ -326,6 +339,36 @@ export async function getLiveLogs(req: Request, res: Response): Promise<void> {
       VisitorLog.countDocuments(filter),
     ]);
 
+    // Self-healing: repair any legacy records with Unknown city or Cloudflare Network ISP
+    for (const item of items) {
+      if (
+        (!item.city || item.city === 'Unknown' || item.isp === 'Cloudflare Network') &&
+        item.ip &&
+        item.ip !== '127.0.0.1' &&
+        item.ip !== 'localhost'
+      ) {
+        resolveGeoLocation(item.ip).then((geo) => {
+          if (geo && geo.city && geo.city !== 'Unknown') {
+            VisitorLog.updateOne(
+              { _id: item._id },
+              {
+                $set: {
+                  country: geo.country,
+                  countryCode: geo.countryCode,
+                  region: geo.region,
+                  city: geo.city,
+                  zip: geo.zip || '',
+                  timezone: geo.timezone || '',
+                  isp: geo.isp,
+                  org: geo.org || '',
+                },
+              }
+            ).exec();
+          }
+        }).catch(() => {});
+      }
+    }
+
     res.json({
       items,
       total,
@@ -351,7 +394,7 @@ export async function clearLogs(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Admin: Export visitor logs as CSV
+ * Admin: Export visitor logs as CSV with in/out times
  */
 export async function exportCsv(req: Request, res: Response): Promise<void> {
   try {
@@ -367,14 +410,20 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       'Country Code',
       'City',
       'Region',
-      'ISP',
+      'Postal / Zip',
+      'Timezone',
+      'ISP / Carrier',
+      'Organization',
+      'In Time (Arrival)',
+      'Out Time (Last Active)',
+      'Duration (sec)',
       'Device',
       'OS',
       'Browser',
       'Referrer',
       'Referrer Source',
       'Visited Path',
-      'Duration (sec)',
+      'Sections Explored',
     ];
 
     const rows = logs.map((l: any) => [
@@ -384,14 +433,20 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       `"${l.countryCode || ''}"`,
       `"${l.city || ''}"`,
       `"${l.region || ''}"`,
+      `"${l.zip || ''}"`,
+      `"${l.timezone || ''}"`,
       `"${l.isp || ''}"`,
+      `"${l.org || ''}"`,
+      l.visitedAt ? new Date(l.visitedAt).toISOString() : '',
+      l.lastActiveAt ? new Date(l.lastActiveAt).toISOString() : (l.visitedAt ? new Date(l.visitedAt).toISOString() : ''),
+      l.durationSeconds || 0,
       `"${l.deviceType || ''}"`,
       `"${l.os || ''}"`,
       `"${l.browser || ''}"`,
       `"${l.referrer || ''}"`,
       `"${l.referrerSource || ''}"`,
       `"${l.path || ''}"`,
-      l.durationSeconds || 0,
+      `"${(l.sections || []).join(' > ')}"`,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

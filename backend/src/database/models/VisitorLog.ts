@@ -6,10 +6,14 @@ export interface IVisitorLog extends Document {
   countryCode: string;
   region: string;
   city: string;
+  zip?: string;
+  timezone?: string;
   isp?: string;
+  org?: string;
   lat?: number;
   lon?: number;
   path: string;
+  sections?: string[];
   referrer: string;
   referrerSource: string;
   deviceType: 'desktop' | 'mobile' | 'tablet' | 'bot';
@@ -22,6 +26,7 @@ export interface IVisitorLog extends Document {
   durationSeconds?: number;
   isBot: boolean;
   visitedAt: Date;
+  lastActiveAt: Date;
   updatedAt: Date;
 }
 
@@ -32,10 +37,14 @@ const VisitorLogSchema = new Schema<IVisitorLog>(
     countryCode: { type: String, default: 'XX', uppercase: true },
     region: { type: String, default: 'Unknown' },
     city: { type: String, default: 'Unknown' },
+    zip: { type: String, default: '' },
+    timezone: { type: String, default: '' },
     isp: { type: String, default: '' },
+    org: { type: String, default: '' },
     lat: { type: Number },
     lon: { type: Number },
     path: { type: String, default: '/', trim: true },
+    sections: { type: [String], default: [] },
     referrer: { type: String, default: 'Direct', trim: true },
     referrerSource: {
       type: String,
@@ -56,6 +65,7 @@ const VisitorLogSchema = new Schema<IVisitorLog>(
     durationSeconds: { type: Number, default: 0 },
     isBot: { type: Boolean, default: false },
     visitedAt: { type: Date, default: Date.now, index: true },
+    lastActiveAt: { type: Date, default: Date.now, index: true },
   },
   {
     timestamps: true,

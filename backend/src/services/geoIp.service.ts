@@ -5,7 +5,10 @@ export interface GeoLocationResult {
   countryCode: string;
   region: string;
   city: string;
+  zip?: string;
+  timezone?: string;
   isp: string;
+  org?: string;
   lat?: number;
   lon?: number;
 }
@@ -73,19 +76,10 @@ export async function resolveGeoLocation(
   ip: string,
   headers: Record<string, any> = {}
 ): Promise<GeoLocationResult> {
-  // 1. Check Cloudflare geolocation headers
-  const cfCountry = headers['cf-ipcountry'];
-  const cfCity = headers['cf-ipcity'];
-  const cfRegion = headers['cf-region'];
-
-  if (cfCountry && typeof cfCountry === 'string' && cfCountry !== 'XX') {
-    return {
-      country: countryCodeToName(cfCountry) || cfCountry,
-      countryCode: cfCountry.toUpperCase(),
-      region: typeof cfRegion === 'string' ? cfRegion : 'Unknown',
-      city: typeof cfCity === 'string' ? decodeURIComponent(cfCity) : 'Unknown',
-      isp: 'Cloudflare Network',
-    };
+  // 1. Check memory cache first
+  const cached = geoCache.get(ip);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.result;
   }
 
   // 2. Handle Localhost / Internal IP
@@ -95,23 +89,47 @@ export async function resolveGeoLocation(
       countryCode: 'IN',
       region: 'Internal',
       city: 'Localhost',
+      zip: '',
+      timezone: 'Asia/Kolkata',
       isp: 'Development / Loopback',
+      org: 'Local System',
     };
   }
 
-  // 3. Check memory cache
-  const cached = geoCache.get(ip);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.result;
+  // 3. If Cloudflare (or another proxy) already provided verified city & country headers, use them directly
+  const cfCountry = headers['cf-ipcountry'];
+  const cfCity = headers['cf-ipcity'];
+  const cfRegion = headers['cf-region'];
+
+  if (
+    cfCity &&
+    typeof cfCity === 'string' &&
+    cfCity.toLowerCase() !== 'unknown' &&
+    cfCountry &&
+    typeof cfCountry === 'string' &&
+    cfCountry !== 'XX'
+  ) {
+    const result: GeoLocationResult = {
+      country: countryCodeToName(cfCountry) || cfCountry,
+      countryCode: cfCountry.toUpperCase(),
+      region: typeof cfRegion === 'string' && cfRegion.toLowerCase() !== 'unknown' ? cfRegion : '',
+      city: decodeURIComponent(cfCity),
+      zip: '',
+      timezone: '',
+      isp: 'Direct Route',
+      org: '',
+    };
+    return result;
   }
 
-  // 4. Resolve via ip-api.com with strict timeout (1.2 seconds)
+  // 4. Primary Lookup: ip-api.com (includes exact City, Region, Zip, ISP, Org, Timezone)
+  // This resolves real visitors even when Cloudflare Free does not supply cf-ipcity!
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1200);
+    const timeout = setTimeout(() => controller.abort(), 2000);
 
     const res = await fetch(
-      `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,regionName,city,lat,lon,isp`,
+      `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,regionName,city,zip,timezone,isp,org,lat,lon`,
       { signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -120,11 +138,14 @@ export async function resolveGeoLocation(
       const data = (await res.json()) as any;
       if (data.status === 'success') {
         const result: GeoLocationResult = {
-          country: data.country || 'Unknown',
-          countryCode: data.countryCode || 'XX',
-          region: data.regionName || 'Unknown',
-          city: data.city || 'Unknown',
+          country: data.country || (cfCountry ? countryCodeToName(cfCountry) : 'Unknown'),
+          countryCode: (data.countryCode || cfCountry || 'XX').toUpperCase(),
+          region: data.regionName || (typeof cfRegion === 'string' && cfRegion !== 'Unknown' ? cfRegion : ''),
+          city: data.city || '',
+          zip: data.zip || '',
+          timezone: data.timezone || '',
           isp: data.isp || '',
+          org: data.org || '',
           lat: typeof data.lat === 'number' ? data.lat : undefined,
           lon: typeof data.lon === 'number' ? data.lon : undefined,
         };
@@ -137,16 +158,33 @@ export async function resolveGeoLocation(
       }
     }
   } catch (_err) {
-    // Graceful fallback on network timeout or offline
+    // Fallback to secondary provider or CDN headers
+  }
+
+  // 5. Secondary Fallback: Cloudflare country-only header if present
+  if (cfCountry && typeof cfCountry === 'string' && cfCountry !== 'XX') {
+    return {
+      country: countryCodeToName(cfCountry) || cfCountry,
+      countryCode: cfCountry.toUpperCase(),
+      region: typeof cfRegion === 'string' && cfRegion !== 'Unknown' ? cfRegion : '',
+      city: typeof cfCity === 'string' && cfCity !== 'Unknown' ? decodeURIComponent(cfCity) : '',
+      zip: '',
+      timezone: '',
+      isp: 'Cloudflare Network',
+      org: '',
+    };
   }
 
   // Default fallback
   const fallbackResult: GeoLocationResult = {
     country: 'Unknown',
     countryCode: 'XX',
-    region: 'Unknown',
-    city: 'Unknown',
+    region: '',
+    city: '',
+    zip: '',
+    timezone: '',
     isp: '',
+    org: '',
   };
   return fallbackResult;
 }

@@ -102,7 +102,31 @@ export function initVisitorAnalytics(apiBaseUrl: string): void {
 
   window.addEventListener('hashchange', trackHashChange, { passive: true });
 
-  // 6. Track duration on page unload / tab hide
+  // 6. Active heartbeat timer while tab is visible (every 15 seconds)
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+      const payload = {
+        sessionId,
+        path: window.location.pathname + (window.location.hash || ''),
+        durationSeconds: elapsedSeconds,
+      };
+
+      if (typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        navigator.sendBeacon(endpointHeartbeat, blob);
+      } else {
+        fetch(endpointHeartbeat, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    }
+  }, 15000);
+
+  // 7. Track duration on page unload / tab hide
   const sendDurationBeacon = () => {
     try {
       const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
