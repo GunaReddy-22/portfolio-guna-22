@@ -883,9 +883,90 @@ function initMobileMenu() {
   );
 }
 
-// Kick off hydration, mobile menu, and language switcher
+// ----------------------------------------------------------------------------
+// 4. SMART DESKTOP MAILTO & GMAIL COMPOSER INTEGRATION
+// ----------------------------------------------------------------------------
+let toastTimer: any = null;
+
+function showCyberToast(message: string) {
+  let toast = document.getElementById('cyber-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'cyber-toast';
+    toast.className = 'cyber-toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `<span class="ct-icon">✉</span> <span>${escapeHtml(message)}</span>`;
+  toast.classList.add('show');
+
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast?.classList.remove('show');
+  }, 4000);
+}
+
+let mailtoHandlerBound = false;
+
+function initMailtoHandler() {
+  if (mailtoHandlerBound) return;
+  mailtoHandlerBound = true;
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest('a') as HTMLAnchorElement | null;
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href') || '';
+    if (!href.toLowerCase().startsWith('mailto:')) return;
+
+    // Detect mobile touch devices (phones and tablets)
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      // On mobile devices, native Gmail / Apple Mail apps handle mailto: directly
+      return;
+    }
+
+    // On desktop browsers (e.g. Chrome on Windows):
+    // Native mailto: links silently fail when no local OS client (Outlook) is registered.
+    // Intercept click to open Gmail Web Composer in a new tab, copy email to clipboard, and show cyber toast.
+    e.preventDefault();
+
+    const clean = href.replace(/^mailto:/i, '');
+    const [emailPart, queryPart] = clean.split('?');
+    const email = decodeURIComponent(emailPart || '241310022@nitdelhi.ac.in');
+    let subject = 'Hiring Inquiry — Guna Sai';
+    let body = '';
+
+    if (queryPart) {
+      const params = new URLSearchParams(queryPart);
+      subject = params.get('subject') || params.get('su') || subject;
+      body = params.get('body') || '';
+    }
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}${body ? '&body=' + encodeURIComponent(body) : ''}`;
+
+    // 1. Copy email address to clipboard as an instant fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).catch(() => {});
+    }
+
+    // 2. Open Gmail Web compose in a new tab
+    const win = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      // If popup blocker intervened, fall back to setting location
+      window.location.href = href;
+    }
+
+    // 3. Display cyber toast notification
+    showCyberToast(`Opening Gmail · ${email} copied to clipboard!`);
+  });
+}
+
+// Kick off hydration, mobile menu, mailto handler, and language switcher
 function boot() {
   initMobileMenu();
+  initMailtoHandler();
   hydratePortfolio();
   initLanguageSwitcher();
 }
