@@ -28,6 +28,42 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
         ? body.sessionId.trim()
         : `vid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+    // Anonymous Fingerprinting & Loyalty calculation
+    const visitorFingerprint = typeof body.visitorFingerprint === 'string' ? body.visitorFingerprint.trim() : '';
+    let visitNumber = 1;
+    let isReturning = false;
+    if (visitorFingerprint && visitorFingerprint !== 'fp_generic') {
+      try {
+        const priorVisits = await VisitorLog.countDocuments({
+          visitorFingerprint,
+          sessionId: { $ne: sessionId },
+        });
+        visitNumber = priorVisits + 1;
+        isReturning = priorVisits > 0;
+      } catch {
+        // Fallback to initial visit
+      }
+    }
+
+    // Hardware & Device X-Ray
+    const gpuRenderer = typeof body.gpuRenderer === 'string' ? body.gpuRenderer.slice(0, 150) : '';
+    const cpuCores = typeof body.cpuCores === 'number' && body.cpuCores > 0 ? body.cpuCores : undefined;
+    const deviceMemoryGb = typeof body.deviceMemoryGb === 'number' && body.deviceMemoryGb > 0 ? body.deviceMemoryGb : undefined;
+    const touchPoints = typeof body.touchPoints === 'number' ? body.touchPoints : 0;
+    const pixelRatio = typeof body.pixelRatio === 'number' ? body.pixelRatio : 1;
+    const colorDepth = typeof body.colorDepth === 'number' ? body.colorDepth : undefined;
+
+    // Network Telemetry
+    const connectionType = typeof body.connectionType === 'string' ? body.connectionType : '';
+    const downlinkMbps = typeof body.downlinkMbps === 'number' ? body.downlinkMbps : undefined;
+    const rttMs = typeof body.rttMs === 'number' ? body.rttMs : undefined;
+    const saveData = Boolean(body.saveData);
+
+    // System Preferences
+    const languages = Array.isArray(body.languages) ? body.languages.map(String).slice(0, 8) : [];
+    const colorScheme = typeof body.colorScheme === 'string' ? body.colorScheme : '';
+    const reducedMotion = Boolean(body.reducedMotion);
+
     // Resolve Geolocation asynchronously
     const geo = await resolveGeoLocation(ip, req.headers);
     const now = new Date();
@@ -59,6 +95,24 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
       isBot: uaResult.isBot,
       visitedAt: now,
       lastActiveAt: now,
+
+      // Telemetry & Loyalty
+      visitorFingerprint,
+      visitNumber,
+      isReturning,
+      gpuRenderer,
+      cpuCores,
+      deviceMemoryGb,
+      touchPoints,
+      pixelRatio,
+      colorDepth,
+      connectionType,
+      downlinkMbps,
+      rttMs,
+      saveData,
+      languages,
+      colorScheme,
+      reducedMotion,
     });
 
     await logEntry.save();
@@ -66,6 +120,8 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       success: true,
       sessionId,
+      visitNumber,
+      isReturning,
     });
   } catch (err: any) {
     // Non-blocking fallback
@@ -78,33 +134,104 @@ export async function trackVisit(req: Request, res: Response): Promise<void> {
  */
 export async function trackHeartbeat(req: Request, res: Response): Promise<void> {
   try {
-    const { sessionId, durationSeconds, path } = req.body || {};
+    const {
+      sessionId,
+      durationSeconds,
+      path,
+      maxScrollPercentage,
+      sectionDwellTimes,
+      events,
+      activeSeconds,
+      idleSeconds,
+    } = req.body || {};
+
     if (!sessionId || typeof durationSeconds !== 'number') {
       res.status(200).json({ success: false });
       return;
     }
 
     const now = new Date();
-    const update: any = {
-      $set: {
-        durationSeconds: Math.min(durationSeconds, 86400),
-        lastActiveAt: now,
-      },
+    const setUpdates: any = {
+      durationSeconds: Math.min(durationSeconds, 86400),
+      lastActiveAt: now,
     };
+
     if (typeof path === 'string' && path.trim()) {
-      update.$set.path = path.trim();
-      update.$addToSet = { sections: path.trim() };
+      setUpdates.path = path.trim();
+    }
+    if (typeof activeSeconds === 'number') {
+      setUpdates.activeSeconds = activeSeconds;
+    }
+    if (typeof idleSeconds === 'number') {
+      setUpdates.idleSeconds = idleSeconds;
+    }
+    if (sectionDwellTimes && typeof sectionDwellTimes === 'object') {
+      setUpdates.sectionDwellTimes = sectionDwellTimes;
+    }
+
+    const updateQuery: any = { $set: setUpdates };
+
+    if (typeof maxScrollPercentage === 'number') {
+      updateQuery.$max = { maxScrollPercentage: Math.min(100, Math.max(0, maxScrollPercentage)) };
+    }
+
+    if (typeof path === 'string' && path.trim()) {
+      updateQuery.$addToSet = { sections: path.trim() };
+    }
+
+    if (Array.isArray(events) && events.length > 0) {
+      const sanitizedEvents = events.slice(0, 20).map((ev: any) => ({
+        type: String(ev.type || 'interaction').slice(0, 50),
+        label: String(ev.label || ev.type || '').slice(0, 100),
+        target: String(ev.target || '').slice(0, 200),
+        timestamp: ev.timestamp ? new Date(ev.timestamp) : now,
+      }));
+      updateQuery.$push = { events: { $each: sanitizedEvents } };
     }
 
     await VisitorLog.findOneAndUpdate(
       { sessionId },
-      update,
+      updateQuery,
       { sort: { visitedAt: -1 } }
     );
 
     res.status(200).json({ success: true });
   } catch {
     res.status(200).json({ success: false });
+  }
+}
+
+/**
+ * Public: Track an explicit high-intent interaction event (e.g. Resume Download, Demo Click)
+ */
+export async function trackEvent(req: Request, res: Response): Promise<void> {
+  try {
+    const { sessionId, type, label, target } = req.body || {};
+    if (!sessionId || !type) {
+      res.status(400).json({ error: 'sessionId and type are required' });
+      return;
+    }
+
+    const now = new Date();
+    const eventItem = {
+      type: String(type).slice(0, 50),
+      label: String(label || type).slice(0, 100),
+      target: String(target || '').slice(0, 200),
+      timestamp: now,
+    };
+
+    await VisitorLog.findOneAndUpdate(
+      { sessionId },
+      {
+        $push: { events: eventItem },
+        $set: { lastActiveAt: now },
+      },
+      { sort: { visitedAt: -1 } }
+    );
+
+    res.status(200).json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Failed to record event' });
   }
 }
 
@@ -284,11 +411,27 @@ export async function getOverview(req: Request, res: Response): Promise<void> {
     ]);
     const avgDuration = Math.round(durationAgg[0]?.avgDuration || 0);
 
+    // 11. High-Intent Actions & Loyalty
+    const [totalResumeDownloads, totalDemoClicks, returningVisitors, avgScrollAgg] = await Promise.all([
+      VisitorLog.countDocuments({ ...matchFilter, 'events.type': 'resume_download' }),
+      VisitorLog.countDocuments({ ...matchFilter, 'events.type': 'external_link_click' }),
+      VisitorLog.countDocuments({ ...matchFilter, isReturning: true }),
+      VisitorLog.aggregate([
+        { $match: { ...matchFilter, maxScrollPercentage: { $gt: 0 } } },
+        { $group: { _id: null, avgScroll: { $avg: '$maxScrollPercentage' } } },
+      ]),
+    ]);
+    const avgScrollDepth = Math.round(avgScrollAgg[0]?.avgScroll || 0);
+
     res.json({
       period,
       totalVisits,
       uniqueVisitors,
       avgDuration,
+      totalResumeDownloads,
+      totalDemoClicks,
+      returningVisitors,
+      avgScrollDepth,
       topCountries,
       topCities,
       topReferrers,
@@ -417,6 +560,18 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       'In Time (Arrival)',
       'Out Time (Last Active)',
       'Duration (sec)',
+      'Active Time (sec)',
+      'Idle Time (sec)',
+      'Max Scroll %',
+      'Visit Number',
+      'Returning Visitor',
+      'GPU Renderer',
+      'CPU Cores',
+      'RAM (GB)',
+      'Connection Type',
+      'Downlink (Mbps)',
+      'Latency (RTT ms)',
+      'Color Scheme',
       'Device',
       'OS',
       'Browser',
@@ -424,6 +579,7 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       'Referrer Source',
       'Visited Path',
       'Sections Explored',
+      'Events Logged',
     ];
 
     const rows = logs.map((l: any) => [
@@ -440,6 +596,18 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       l.visitedAt ? new Date(l.visitedAt).toISOString() : '',
       l.lastActiveAt ? new Date(l.lastActiveAt).toISOString() : (l.visitedAt ? new Date(l.visitedAt).toISOString() : ''),
       l.durationSeconds || 0,
+      l.activeSeconds || 0,
+      l.idleSeconds || 0,
+      l.maxScrollPercentage || 0,
+      l.visitNumber || 1,
+      l.isReturning ? 'Yes' : 'No',
+      `"${l.gpuRenderer || ''}"`,
+      l.cpuCores || '',
+      l.deviceMemoryGb || '',
+      `"${l.connectionType || ''}"`,
+      l.downlinkMbps || '',
+      l.rttMs || '',
+      `"${l.colorScheme || ''}"`,
       `"${l.deviceType || ''}"`,
       `"${l.os || ''}"`,
       `"${l.browser || ''}"`,
@@ -447,6 +615,7 @@ export async function exportCsv(req: Request, res: Response): Promise<void> {
       `"${l.referrerSource || ''}"`,
       `"${l.path || ''}"`,
       `"${(l.sections || []).join(' > ')}"`,
+      `"${(l.events || []).map((e: any) => `${e.type}: ${e.label}`).join(' | ')}"`,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

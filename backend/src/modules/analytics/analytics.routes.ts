@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   trackVisit,
   trackHeartbeat,
+  trackEvent,
   getOverview,
   getLiveLogs,
   clearLogs,
@@ -13,6 +14,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 export const publicAnalyticsRouter = Router();
 publicAnalyticsRouter.post('/track', trackVisit);
 publicAnalyticsRouter.post('/heartbeat', trackHeartbeat);
+publicAnalyticsRouter.post('/event', trackEvent);
 
 // Protected router for Admin CMS
 export const adminAnalyticsRouter = Router();

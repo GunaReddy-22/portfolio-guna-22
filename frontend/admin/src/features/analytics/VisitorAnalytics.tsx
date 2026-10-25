@@ -26,6 +26,14 @@ import {
   Layers,
   ChevronRight,
   Filter,
+  Cpu,
+  HardDrive,
+  Gauge,
+  FileText,
+  Sparkles,
+  MousePointer,
+  Flame,
+  Zap,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CmsLoadingState } from '../../components/CmsLoadingState';
@@ -38,6 +46,7 @@ export const VisitorAnalytics: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>('');
   const [deviceFilter, setDeviceFilter] = useState<string>('');
+  const [intentFilter, setIntentFilter] = useState<string>('all');
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
@@ -224,6 +233,20 @@ export const VisitorAnalytics: React.FC = () => {
     }
   };
 
+  // Filter logs based on intent tab
+  const filteredLogs = logs.filter((l) => {
+    if (intentFilter === 'resume') {
+      return (l.events || []).some((e: any) => e.type === 'resume_download');
+    }
+    if (intentFilter === 'demos') {
+      return (l.events || []).some((e: any) => e.type === 'external_link_click');
+    }
+    if (intentFilter === 'returning') {
+      return l.isReturning || (l.visitNumber && l.visitNumber > 1);
+    }
+    return true;
+  });
+
   if (loading && !overview) {
     return (
       <CmsLoadingState
@@ -242,7 +265,7 @@ export const VisitorAnalytics: React.FC = () => {
       <div className="cms-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 className="cms-page-title">Visitor Analytics & Live Engagement</h1>
+            <h1 className="cms-page-title">Visitor Analytics & Live Intelligence</h1>
             <span
               style={{
                 display: 'inline-flex',
@@ -269,7 +292,7 @@ export const VisitorAnalytics: React.FC = () => {
             </span>
           </div>
           <p className="cms-page-subtitle">
-            Elite real-time session telemetry: arrival in-time, departure out-time, precise city/ISP resolution, and section journeys
+            Elite real-time telemetry: In/Out timestamps, hardware GPU X-ray, recruiter intent, repeat visits, and section journeys
           </p>
         </div>
 
@@ -352,65 +375,43 @@ export const VisitorAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Primary KPI Row: Core & Recruiter Intent */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '1rem',
         }}
       >
         {/* Total Page Views */}
         <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Total Pageviews
             </span>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                color: 'var(--cms-amber)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(245, 158, 11, 0.12)', color: 'var(--cms-amber)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Eye size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
             {overview?.totalVisits ?? 0}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <TrendingUp size={12} style={{ color: 'var(--cms-success)' }} /> Filtered clean telemetry
+            <TrendingUp size={12} style={{ color: 'var(--cms-success)' }} /> Bot-filtered clean traffic
           </div>
         </div>
 
         {/* Unique Visitors */}
         <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Unique Visitors
             </span>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(20, 184, 166, 0.12)',
-                color: 'var(--cms-teal)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(20, 184, 166, 0.12)', color: 'var(--cms-teal)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Users size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
             {overview?.uniqueVisitors ?? 0}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
@@ -418,64 +419,75 @@ export const VisitorAnalytics: React.FC = () => {
           </div>
         </div>
 
-        {/* Top Location */}
-        <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+        {/* Resume Downloads (High Intent) */}
+        <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden', border: overview?.totalResumeDownloads > 0 ? '1px solid rgba(16, 185, 129, 0.4)' : undefined }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Top Location
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Resume Downloads
             </span>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(139, 92, 246, 0.12)',
-                color: 'var(--cms-violet)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Globe2 size={16} />
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: 'var(--cms-success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileText size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--cms-text)', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>{renderCountryFlag(topCountry?.code, 'md')}</span>
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {topCountry?.country || 'No visits yet'}
-            </span>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-success)', lineHeight: 1 }}>
+            {overview?.totalResumeDownloads ?? 0}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
-            {topCity ? `${topCity.city} (${topCountry?.count || 0} visits)` : 'Awaiting traffic'}
+            High recruiter hiring intent 📄
           </div>
         </div>
 
-        {/* Avg Engagement Time */}
+        {/* Demo & Repo Clicks */}
         <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Avg. Time on Site
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Project & Demo Clicks
             </span>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                color: 'var(--cms-danger)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Clock size={16} />
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(139, 92, 246, 0.12)', color: 'var(--cms-violet)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ExternalLink size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
-            {formatDuration(overview?.avgDuration)}
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
+            {overview?.totalDemoClicks ?? 0}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
-            Measured via live heartbeat
+            Outbound project validations 🚀
+          </div>
+        </div>
+
+        {/* Returning Visitors (Loyalty) */}
+        <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Returning Visitors
+            </span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: 'var(--cms-danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Flame size={16} />
+            </div>
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
+            {overview?.returningVisitors ?? 0}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
+            {overview?.uniqueVisitors > 0 ? `${Math.round(((overview?.returningVisitors || 0) / overview.uniqueVisitors) * 100)}% return rate` : 'Multi-session tracking'}
+          </div>
+        </div>
+
+        {/* Avg Scroll Depth */}
+        <div className="cms-card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Avg. Scroll Depth
+            </span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Gauge size={16} />
+            </div>
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--cms-text)', lineHeight: 1 }}>
+            {overview?.avgScrollDepth || 0}%
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '0.5rem' }}>
+            {formatDuration(overview?.avgDuration)} avg dwell time
           </div>
         </div>
       </div>
@@ -598,27 +610,26 @@ export const VisitorAnalytics: React.FC = () => {
               <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', textTransform: 'uppercase', color: 'var(--cms-text-muted)', marginBottom: '8px' }}>
                 Device & System Breakdown
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 {overview?.deviceBreakdown?.map((d: any, idx: number) => (
                   <div
                     key={idx}
                     style={{
-                      padding: '10px',
-                      backgroundColor: 'var(--cms-surface)',
-                      border: '1px solid var(--cms-border)',
-                      borderRadius: 'var(--cms-radius-sm)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      backgroundColor: 'var(--cms-surface)',
+                      borderRadius: 'var(--cms-radius-sm)',
+                      border: '1px solid var(--cms-border)',
+                      fontSize: '12px',
                     }}
                   >
-                    {getDeviceIcon(d.device)}
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'capitalize' }}>{d.device}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--cms-text-muted)', fontFamily: 'var(--cms-font-mono)' }}>
-                        {d.count} hits
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'capitalize' }}>
+                      {getDeviceIcon(d.device)}
+                      <span>{d.device}</span>
                     </div>
+                    <span style={{ fontWeight: 700, fontFamily: 'var(--cms-font-mono)' }}>{d.count}</span>
                   </div>
                 ))}
               </div>
@@ -627,33 +638,63 @@ export const VisitorAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* Real-Time Live Visitor Log Table */}
-      <div className="cms-card" style={{ padding: '1.5rem', overflow: 'hidden' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            marginBottom: '1.25rem',
-          }}
-        >
+      {/* Live Visitor Feed Section */}
+      <div className="cms-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Feed Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--cms-success)', display: 'inline-block' }} />
-              Live Visitor Feed
-              <span style={{ fontSize: '12px', color: 'var(--cms-text-muted)', fontWeight: 'normal' }}>
-                ({totalLogs} total recorded)
-              </span>
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--cms-teal)' }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0 }}>
+                Live Visitor Feed ({totalLogs} recorded)
+              </h3>
+            </div>
             <p style={{ fontSize: '12px', color: 'var(--cms-text-secondary)', margin: '4px 0 0' }}>
-              Click any row to inspect full visitor details, network carrier, in/out timestamps, and section journey
+              Click any row to inspect deep hardware GPU telemetry, connection quality, recruiter actions, and section dwell times
             </p>
           </div>
 
-          {/* Search & Device Filter */}
+          {/* Search & Filters */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Quick Intent Filter Tabs */}
+            <div
+              style={{
+                display: 'inline-flex',
+                backgroundColor: 'var(--cms-surface)',
+                border: '1px solid var(--cms-border)',
+                borderRadius: 'var(--cms-radius-md)',
+                padding: '2px',
+              }}
+            >
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'resume', label: '📄 Resume' },
+                { id: 'demos', label: '🚀 Demos' },
+                { id: 'returning', label: '🔄 Returning' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setIntentFilter(tab.id)}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: 'var(--cms-radius-sm)',
+                    fontSize: '11px',
+                    fontFamily: 'var(--cms-font-mono)',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: intentFilter === tab.id ? 'var(--cms-amber)' : 'transparent',
+                    color: intentFilter === tab.id ? '#0a0d14' : 'var(--cms-text-secondary)',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
             <div style={{ position: 'relative' }}>
               <Search
                 size={14}
@@ -661,9 +702,9 @@ export const VisitorAnalytics: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder="Search IP, City, Country, Path..."
+                placeholder="Search IP, City, ISP, GPU..."
                 className="cms-input"
-                style={{ paddingLeft: '32px', width: '220px', fontSize: '12px' }}
+                style={{ paddingLeft: '32px', width: '200px', fontSize: '12px' }}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -672,9 +713,10 @@ export const VisitorAnalytics: React.FC = () => {
               />
             </div>
 
+            {/* Device Filter */}
             <select
               className="cms-select"
-              style={{ fontSize: '12px', width: '130px' }}
+              style={{ fontSize: '12px', width: '120px' }}
               value={deviceFilter}
               onChange={(e) => {
                 setDeviceFilter(e.target.value);
@@ -691,32 +733,33 @@ export const VisitorAnalytics: React.FC = () => {
         </div>
 
         {/* Table */}
-        {logs.length === 0 ? (
+        {filteredLogs.length === 0 ? (
           <div style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--cms-text-muted)' }}>
             <Globe2 size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
             <div style={{ fontSize: '14px', fontWeight: 600 }}>No visitor records found</div>
             <div style={{ fontSize: '12px', marginTop: '4px' }}>
-              {search ? 'Try clearing your search query' : 'Visitor visits to gunasai.in will appear here in real-time.'}
+              {search || intentFilter !== 'all' ? 'Try clearing your filter or search query' : 'Visitor visits to gunasai.in will appear here in real-time.'}
             </div>
           </div>
         ) : (
           <div className="cms-table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="cms-table" style={{ width: '100%', fontSize: '12.5px' }}>
+            <table className="cms-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '90px' }}>In Time</th>
-                  <th style={{ width: '105px' }}>Out / Status</th>
-                  <th style={{ width: '150px' }}>Visitor IP</th>
+                  <th style={{ width: '85px' }}>In Time</th>
+                  <th style={{ width: '100px' }}>Out / Status</th>
+                  <th style={{ width: '140px' }}>Visitor IP</th>
+                  <th style={{ width: '105px' }}>Loyalty / Visit</th>
                   <th>Location (City & Country)</th>
-                  <th>ISP / Carrier</th>
-                  <th>Device / Browser</th>
-                  <th>Referral Origin</th>
-                  <th>Section Viewed</th>
-                  <th style={{ textAlign: 'right', width: '80px' }}>Duration</th>
+                  <th>Carrier / Network</th>
+                  <th>Hardware & GPU</th>
+                  <th>Intent Actions</th>
+                  <th style={{ width: '75px' }}>Scroll</th>
+                  <th style={{ textAlign: 'right', width: '75px' }}>Duration</th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log: any) => {
+                {filteredLogs.map((log: any) => {
                   const refBadge = getReferrerBadge(log.referrerSource);
                   const isCopied = copiedIp === log.ip;
                   const active = isVisitorActive(log.lastActiveAt, log.visitedAt);
@@ -725,14 +768,16 @@ export const VisitorAnalytics: React.FC = () => {
                   const displayRegion = log.region && log.region !== 'Unknown' ? log.region : '';
                   const displayCountry = log.country && log.country !== 'Unknown' ? log.country : 'Unknown';
 
-                  let locationText = displayCountry;
-                  if (displayCity && displayRegion) {
-                    locationText = `${displayCity}, ${displayRegion}, ${displayCountry}`;
-                  } else if (displayCity) {
-                    locationText = `${displayCity}, ${displayCountry}`;
-                  }
-
                   const displayIsp = log.isp && log.isp !== 'Cloudflare Network' ? log.isp : (log.org || 'Direct Network');
+
+                  // High-intent flags in row
+                  const hasResume = (log.events || []).some((e: any) => e.type === 'resume_download');
+                  const hasDemos = (log.events || []).some((e: any) => e.type === 'external_link_click');
+                  const hasCopy = (log.events || []).some((e: any) => e.type === 'contact_copy');
+
+                  // Hardware chip
+                  let hardwareChip = log.gpuRenderer ? log.gpuRenderer.split(' ')[0] : '';
+                  if (!hardwareChip && log.cpuCores) hardwareChip = `${log.cpuCores}c`;
 
                   return (
                     <tr
@@ -756,7 +801,7 @@ export const VisitorAnalytics: React.FC = () => {
                               gap: '5px',
                               padding: '2px 8px',
                               borderRadius: '100px',
-                              fontSize: '10.5px',
+                              fontSize: '10px',
                               fontFamily: 'var(--cms-font-mono)',
                               fontWeight: 700,
                               backgroundColor: 'rgba(16, 185, 129, 0.15)',
@@ -776,41 +821,68 @@ export const VisitorAnalytics: React.FC = () => {
 
                       {/* IP with Copy Button */}
                       <td>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <span
-                            style={{
-                              fontFamily: 'var(--cms-font-mono)',
-                              fontSize: '12px',
-                              color: log.isBot ? 'var(--cms-text-muted)' : 'var(--cms-text)',
-                            }}
-                          >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontFamily: 'var(--cms-font-mono)', fontSize: '11.5px', color: log.isBot ? 'var(--cms-text-muted)' : 'var(--cms-text)' }}>
                             {log.ip}
                           </span>
                           <button
                             type="button"
                             onClick={(e) => handleCopyIp(log.ip, e)}
                             title="Copy IP"
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: isCopied ? 'var(--cms-success)' : 'var(--cms-text-muted)',
-                              cursor: 'pointer',
-                              padding: '2px',
-                            }}
+                            style={{ background: 'transparent', border: 'none', color: isCopied ? 'var(--cms-success)' : 'var(--cms-text-muted)', cursor: 'pointer', padding: '1px' }}
                           >
-                            {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                            {isCopied ? <Check size={11} /> : <Copy size={11} />}
                           </button>
                         </div>
                       </td>
 
+                      {/* Loyalty Badge */}
+                      <td>
+                        {log.isReturning || (log.visitNumber && log.visitNumber > 1) ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10.5px',
+                              fontFamily: 'var(--cms-font-mono)',
+                              fontWeight: 700,
+                              backgroundColor: 'rgba(239, 68, 68, 0.14)',
+                              color: 'var(--cms-danger)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                            }}
+                          >
+                            <Flame size={10} /> #{log.visitNumber || 2} Visit
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10.5px',
+                              fontFamily: 'var(--cms-font-mono)',
+                              color: 'var(--cms-text-muted)',
+                              backgroundColor: 'rgba(255,255,255,0.03)',
+                            }}
+                          >
+                            ⭐ 1st Visit
+                          </span>
+                        )}
+                      </td>
+
                       {/* Location */}
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span>{renderCountryFlag(log.countryCode)}</span>
                           <div>
                             <span style={{ fontWeight: 600 }}>{displayCity || displayCountry}</span>
                             {displayCity && (
-                              <span style={{ color: 'var(--cms-text-muted)', fontSize: '11.5px' }}>
+                              <span style={{ color: 'var(--cms-text-muted)', fontSize: '11px' }}>
                                 , {displayRegion ? `${displayRegion}, ` : ''}{displayCountry}
                               </span>
                             )}
@@ -820,53 +892,66 @@ export const VisitorAnalytics: React.FC = () => {
 
                       {/* ISP / Carrier */}
                       <td>
-                        <span style={{ fontSize: '11.5px', color: 'var(--cms-text-secondary)', fontFamily: 'var(--cms-font-mono)' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', fontFamily: 'var(--cms-font-mono)' }}>
                           {displayIsp}
                         </span>
                       </td>
 
-                      {/* Device & OS */}
+                      {/* Hardware & GPU */}
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                           {getDeviceIcon(log.deviceType)}
-                          <span style={{ fontWeight: 500 }}>
-                            {log.browser} · {log.os}
+                          <span style={{ fontSize: '11px', color: 'var(--cms-text)', fontWeight: 500 }}>
+                            {log.browser} · {hardwareChip || log.os}
                           </span>
+                          {log.connectionType && (
+                            <span style={{ fontSize: '9.5px', fontFamily: 'var(--cms-font-mono)', padding: '1px 4px', borderRadius: '3px', backgroundColor: 'rgba(20,184,166,0.15)', color: 'var(--cms-teal)' }}>
+                              {log.connectionType.toUpperCase()}
+                            </span>
+                          )}
                         </div>
                       </td>
 
-                      {/* Referrer */}
+                      {/* Intent Actions (Badges) */}
                       <td>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: refBadge.bg,
-                            color: refBadge.color,
-                            border: `1px solid ${refBadge.border}`,
-                          }}
-                        >
-                          {refBadge.label}
-                        </span>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          {hasResume && (
+                            <span style={{ fontSize: '9.5px', padding: '1px 5px', borderRadius: '3px', backgroundColor: 'rgba(16,185,129,0.18)', color: 'var(--cms-success)', fontWeight: 700, border: '1px solid rgba(16,185,129,0.3)' }}>
+                              📄 CV
+                            </span>
+                          )}
+                          {hasDemos && (
+                            <span style={{ fontSize: '9.5px', padding: '1px 5px', borderRadius: '3px', backgroundColor: 'rgba(139,92,246,0.18)', color: 'var(--cms-violet)', fontWeight: 700, border: '1px solid rgba(139,92,246,0.3)' }}>
+                              🚀 Demo
+                            </span>
+                          )}
+                          {hasCopy && (
+                            <span style={{ fontSize: '9.5px', padding: '1px 5px', borderRadius: '3px', backgroundColor: 'rgba(245,158,11,0.18)', color: 'var(--cms-amber)', fontWeight: 700, border: '1px solid rgba(245,158,11,0.3)' }}>
+                              📋 Copy
+                            </span>
+                          )}
+                          {!hasResume && !hasDemos && !hasCopy && (
+                            <span style={{ fontSize: '10px', color: 'var(--cms-text-muted)' }}>Browsing</span>
+                          )}
+                        </div>
                       </td>
 
-                      {/* Visited Path */}
+                      {/* Scroll Depth Progress */}
                       <td>
-                        <span
-                          style={{
-                            fontFamily: 'var(--cms-font-mono)',
-                            fontSize: '11px',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            backgroundColor: 'rgba(255,255,255,0.03)',
-                            border: '1px solid var(--cms-border)',
-                          }}
-                        >
-                          {log.path || '/'}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--cms-surface-elevated)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div
+                              style={{
+                                width: `${log.maxScrollPercentage || 0}%`,
+                                height: '100%',
+                                backgroundColor: (log.maxScrollPercentage || 0) >= 75 ? 'var(--cms-success)' : 'var(--cms-amber)',
+                              }}
+                            />
+                          </div>
+                          <span style={{ fontSize: '10px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)' }}>
+                            {log.maxScrollPercentage || 0}%
+                          </span>
+                        </div>
                       </td>
 
                       {/* Duration */}
@@ -882,13 +967,13 @@ export const VisitorAnalytics: React.FC = () => {
         )}
       </div>
 
-      {/* Visitor Session Inspector Modal (Elite Platform Detail View) */}
+      {/* Visitor Session Inspector Modal (Elite Telemetry Drawer) */}
       {selectedVisitor && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             backdropFilter: 'blur(8px)',
             zIndex: 9999,
             display: 'flex',
@@ -902,7 +987,7 @@ export const VisitorAnalytics: React.FC = () => {
             className="cms-card"
             style={{
               width: '100%',
-              maxWidth: '680px',
+              maxWidth: '750px',
               maxHeight: '90vh',
               overflowY: 'auto',
               backgroundColor: 'var(--cms-bg-card)',
@@ -914,52 +999,49 @@ export const VisitorAnalytics: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--cms-border)', paddingBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', borderBottom: '1px solid var(--cms-border)', paddingBottom: '1rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span>{renderCountryFlag(selectedVisitor.countryCode, 'md')}</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
                     {selectedVisitor.city ? `${selectedVisitor.city}, ${selectedVisitor.country}` : (selectedVisitor.country || 'Visitor Telemetry')}
                   </h2>
+
+                  {/* Active vs Departed */}
                   {isVisitorActive(selectedVisitor.lastActiveAt, selectedVisitor.visitedAt) ? (
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '100px',
-                        fontSize: '11px',
-                        fontFamily: 'var(--cms-font-mono)',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                        color: 'var(--cms-success)',
-                        border: '1px solid rgba(16, 185, 129, 0.35)',
-                      }}
-                    >
+                    <span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontFamily: 'var(--cms-font-mono)', fontWeight: 700, backgroundColor: 'rgba(16, 185, 129, 0.15)', color: 'var(--cms-success)', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
                       🟢 Active Now
                     </span>
                   ) : (
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '100px',
-                        fontSize: '11px',
-                        fontFamily: 'var(--cms-font-mono)',
-                        backgroundColor: 'rgba(100, 116, 139, 0.15)',
-                        color: 'var(--cms-text-muted)',
-                      }}
-                    >
+                    <span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontFamily: 'var(--cms-font-mono)', backgroundColor: 'rgba(100, 116, 139, 0.15)', color: 'var(--cms-text-muted)' }}>
                       Session Ended
                     </span>
                   )}
+
+                  {/* Loyalty Badge */}
+                  {selectedVisitor.isReturning || selectedVisitor.visitNumber > 1 ? (
+                    <span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontFamily: 'var(--cms-font-mono)', fontWeight: 700, backgroundColor: 'rgba(239, 68, 68, 0.15)', color: 'var(--cms-danger)', border: '1px solid rgba(239, 68, 68, 0.35)' }}>
+                      🔥 Returning Visitor (#{selectedVisitor.visitNumber || 2} Visit)
+                    </span>
+                  ) : (
+                    <span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontFamily: 'var(--cms-font-mono)', backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--cms-text-secondary)' }}>
+                      ⭐ First-Time Visitor
+                    </span>
+                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '13px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-secondary)' }}>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '12px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-secondary)' }}>
                   <span>IP: {selectedVisitor.ip}</span>
                   <button
                     type="button"
                     onClick={() => handleCopyIp(selectedVisitor.ip)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--cms-amber)', cursor: 'pointer', padding: '0 4px' }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--cms-amber)', cursor: 'pointer', padding: '0 4px', fontSize: '11px' }}
                   >
-                    {copiedIp === selectedVisitor.ip ? 'Copied!' : 'Copy'}
+                    {copiedIp === selectedVisitor.ip ? 'Copied!' : 'Copy IP'}
                   </button>
+                  {selectedVisitor.visitorFingerprint && (
+                    <span style={{ color: 'var(--cms-text-muted)' }}>• Device ID: {selectedVisitor.visitorFingerprint}</span>
+                  )}
                 </div>
               </div>
 
@@ -977,80 +1059,215 @@ export const VisitorAnalytics: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '0.75rem',
                 backgroundColor: 'var(--cms-surface)',
                 borderRadius: 'var(--cms-radius-md)',
-                padding: '1.25rem',
-                marginBottom: '1.5rem',
+                padding: '1rem',
+                marginBottom: '1.25rem',
                 border: '1px solid var(--cms-border)',
               }}
             >
               <div>
-                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
                   In Time (Arrival)
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-amber)', fontFamily: 'var(--cms-font-mono)' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '3px', color: 'var(--cms-amber)', fontFamily: 'var(--cms-font-mono)' }}>
                   {formatExactTime(selectedVisitor.visitedAt)}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                <div style={{ fontSize: '10.5px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
                   {formatFullDate(selectedVisitor.visitedAt)}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
                   Out Time (Last Active)
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-teal)', fontFamily: 'var(--cms-font-mono)' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '3px', color: 'var(--cms-teal)', fontFamily: 'var(--cms-font-mono)' }}>
                   {formatExactTime(selectedVisitor.lastActiveAt || selectedVisitor.visitedAt)}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                <div style={{ fontSize: '10.5px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
                   {formatFullDate(selectedVisitor.lastActiveAt || selectedVisitor.visitedAt)}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
                   Total Duration
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: 'var(--cms-text)', fontFamily: 'var(--cms-font-mono)' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '3px', color: 'var(--cms-text)', fontFamily: 'var(--cms-font-mono)' }}>
                   {formatDuration(selectedVisitor.durationSeconds)}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
-                  Session duration
+                <div style={{ fontSize: '10.5px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                  {selectedVisitor.activeSeconds ? `${selectedVisitor.activeSeconds}s active reading` : 'Total session'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', textTransform: 'uppercase' }}>
+                  Max Scroll Depth
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '3px', color: (selectedVisitor.maxScrollPercentage || 0) >= 75 ? 'var(--cms-success)' : 'var(--cms-amber)', fontFamily: 'var(--cms-font-mono)' }}>
+                  {selectedVisitor.maxScrollPercentage || 0}% Read
+                </div>
+                <div style={{ fontSize: '10.5px', color: 'var(--cms-text-secondary)', marginTop: '2px' }}>
+                  Page engagement
                 </div>
               </div>
             </div>
 
-            {/* Detailed Grid: Location & Network */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.5rem' }}>
-              {/* Location Card */}
+            {/* High-Intent Recruiter Events (The Goldmine) */}
+            <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)', marginBottom: '1.25rem' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={14} style={{ color: 'var(--cms-amber)' }} />
+                High-Intent Actions & Interactions ({selectedVisitor.events?.length || 0})
+              </h4>
+
+              {(!selectedVisitor.events || selectedVisitor.events.length === 0) ? (
+                <div style={{ fontSize: '12px', color: 'var(--cms-text-muted)', fontStyle: 'italic' }}>
+                  Visitor scrolled and read sections; no outbound clicks or file downloads recorded during this session.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {selectedVisitor.events.map((evt: any, idx: number) => {
+                    let badgeColor = 'var(--cms-amber)';
+                    let badgeBg = 'rgba(245, 158, 11, 0.15)';
+                    if (evt.type === 'resume_download') {
+                      badgeColor = 'var(--cms-success)';
+                      badgeBg = 'rgba(16, 185, 129, 0.15)';
+                    } else if (evt.type === 'external_link_click') {
+                      badgeColor = 'var(--cms-violet)';
+                      badgeBg = 'rgba(139, 92, 246, 0.15)';
+                    }
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 10px',
+                          backgroundColor: 'var(--cms-surface-elevated)',
+                          borderRadius: 'var(--cms-radius-sm)',
+                          fontSize: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              backgroundColor: badgeBg,
+                              color: badgeColor,
+                              fontSize: '10px',
+                              fontFamily: 'var(--cms-font-mono)',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {evt.type.toUpperCase()}
+                          </span>
+                          <span style={{ fontWeight: 600 }}>{evt.label}</span>
+                          {evt.target && (
+                            <span style={{ color: 'var(--cms-text-muted)', fontSize: '11px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              ({evt.target})
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)' }}>
+                          {formatExactTime(evt.timestamp)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Detailed 2-Column Specs: Hardware X-Ray & Network Telemetry */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+              {/* Hardware & GPU X-Ray */}
               <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
                 <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={14} style={{ color: 'var(--cms-teal)' }} /> Location Details
+                  <Cpu size={14} style={{ color: 'var(--cms-teal)' }} />
+                  Hardware & Device "X-Ray"
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12.5px' }}>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>City:</strong> {selectedVisitor.city || '—'}</div>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Region/State:</strong> {selectedVisitor.region || '—'}</div>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Country:</strong> {selectedVisitor.country} ({selectedVisitor.countryCode})</div>
-                  {selectedVisitor.zip && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Postal Code:</strong> {selectedVisitor.zip}</div>}
-                  {selectedVisitor.timezone && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Timezone:</strong> {selectedVisitor.timezone}</div>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>GPU Chip / Renderer:</strong>{' '}
+                    <span style={{ color: 'var(--cms-amber)', fontFamily: 'var(--cms-font-mono)' }}>
+                      {selectedVisitor.gpuRenderer || 'Integrated / Protected'}
+                    </span>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>CPU Cores:</strong>{' '}
+                    {selectedVisitor.cpuCores ? `${selectedVisitor.cpuCores} Threads` : '—'}
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>System RAM:</strong>{' '}
+                    {selectedVisitor.deviceMemoryGb ? `~${selectedVisitor.deviceMemoryGb} GB` : '—'}
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>Display:</strong>{' '}
+                    {selectedVisitor.screenResolution || '—'} {selectedVisitor.pixelRatio ? `(@${selectedVisitor.pixelRatio}x Retina)` : ''}
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>Input Method:</strong>{' '}
+                    {selectedVisitor.touchPoints && selectedVisitor.touchPoints > 0 ? `Touchscreen (${selectedVisitor.touchPoints} touch points)` : 'Desktop Mouse / Keyboard (0 touch points)'}
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>OS & Browser:</strong>{' '}
+                    {selectedVisitor.os} · {selectedVisitor.browser} {selectedVisitor.browserVersion || ''}
+                  </div>
                 </div>
               </div>
 
-              {/* Network / ISP Card */}
+              {/* Network, Carrier & ASN */}
               <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
                 <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Wifi size={14} style={{ color: 'var(--cms-amber)' }} /> Network & Carrier
+                  <Wifi size={14} style={{ color: 'var(--cms-violet)' }} />
+                  Network & Connection Telemetry
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12.5px' }}>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>ISP:</strong> {selectedVisitor.isp || '—'}</div>
-                  {selectedVisitor.org && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Org:</strong> {selectedVisitor.org}</div>}
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Device:</strong> <span style={{ textTransform: 'capitalize' }}>{selectedVisitor.deviceType}</span></div>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Operating System:</strong> {selectedVisitor.os}</div>
-                  <div><strong style={{ color: 'var(--cms-text-muted)' }}>Browser:</strong> {selectedVisitor.browser} {selectedVisitor.browserVersion}</div>
-                  {selectedVisitor.screenResolution && <div><strong style={{ color: 'var(--cms-text-muted)' }}>Resolution:</strong> {selectedVisitor.screenResolution}</div>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>ISP / Carrier:</strong>{' '}
+                    <span style={{ fontWeight: 600 }}>{selectedVisitor.isp || '—'}</span>
+                  </div>
+                  {selectedVisitor.org && (
+                    <div>
+                      <strong style={{ color: 'var(--cms-text-muted)' }}>Organization / ASN:</strong>{' '}
+                      {selectedVisitor.org}
+                    </div>
+                  )}
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>Network Type:</strong>{' '}
+                    <span style={{ textTransform: 'uppercase', fontFamily: 'var(--cms-font-mono)' }}>
+                      {selectedVisitor.connectionType || 'Broadband / WiFi'}
+                    </span>
+                  </div>
+                  {selectedVisitor.downlinkMbps && (
+                    <div>
+                      <strong style={{ color: 'var(--cms-text-muted)' }}>Estimated Bandwidth:</strong>{' '}
+                      {selectedVisitor.downlinkMbps} Mbps
+                    </div>
+                  )}
+                  {selectedVisitor.rttMs && (
+                    <div>
+                      <strong style={{ color: 'var(--cms-text-muted)' }}>Round-Trip Latency (RTT):</strong>{' '}
+                      {selectedVisitor.rttMs} ms
+                    </div>
+                  )}
+                  <div>
+                    <strong style={{ color: 'var(--cms-text-muted)' }}>Color Scheme:</strong>{' '}
+                    <span style={{ textTransform: 'capitalize' }}>{selectedVisitor.colorScheme || 'Default'}</span>
+                  </div>
+                  {selectedVisitor.languages && selectedVisitor.languages.length > 0 && (
+                    <div>
+                      <strong style={{ color: 'var(--cms-text-muted)' }}>Configured Languages:</strong>{' '}
+                      {selectedVisitor.languages.join(', ')}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1058,9 +1275,9 @@ export const VisitorAnalytics: React.FC = () => {
             {/* Navigation Journey & Sections */}
             <div style={{ backgroundColor: 'var(--cms-surface)', padding: '1rem', borderRadius: 'var(--cms-radius-md)', border: '1px solid var(--cms-border)' }}>
               <h4 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Compass size={14} style={{ color: 'var(--cms-violet)' }} /> Visitor Exploration Journey
+                <Compass size={14} style={{ color: 'var(--cms-amber)' }} /> Visitor Exploration Journey
               </h4>
-              <div style={{ fontSize: '12.5px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '12px', marginBottom: '8px' }}>
                 <strong style={{ color: 'var(--cms-text-muted)' }}>Referral Channel:</strong>{' '}
                 <span
                   style={{
@@ -1078,7 +1295,7 @@ export const VisitorAnalytics: React.FC = () => {
                   {getReferrerBadge(selectedVisitor.referrerSource).label}
                 </span>
                 {selectedVisitor.referrer && selectedVisitor.referrer !== 'Direct' && (
-                  <div style={{ fontSize: '11.5px', color: 'var(--cms-text-secondary)', marginTop: '4px', wordBreak: 'break-all' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--cms-text-secondary)', marginTop: '4px', wordBreak: 'break-all' }}>
                     Origin: {selectedVisitor.referrer}
                   </div>
                 )}
@@ -1086,30 +1303,41 @@ export const VisitorAnalytics: React.FC = () => {
 
               {selectedVisitor.sections && selectedVisitor.sections.length > 0 && (
                 <div style={{ marginTop: '10px' }}>
-                  <div style={{ fontSize: '11px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', marginBottom: '6px' }}>
-                    SECTIONS VIEWED IN THIS SESSION:
+                  <div style={{ fontSize: '10.5px', fontFamily: 'var(--cms-font-mono)', color: 'var(--cms-text-muted)', marginBottom: '6px' }}>
+                    SECTIONS EXPLORED IN CHRONOLOGICAL ORDER:
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                    {selectedVisitor.sections.map((sec: string, idx: number) => (
-                      <React.Fragment key={idx}>
-                        <span
-                          style={{
-                            padding: '4px 10px',
-                            backgroundColor: 'rgba(255,200,74,0.08)',
-                            border: '1px solid rgba(255,200,74,0.25)',
-                            borderRadius: '4px',
-                            color: 'var(--cms-amber)',
-                            fontSize: '11px',
-                            fontFamily: 'var(--cms-font-mono)',
-                          }}
-                        >
-                          {sec || '/'}
-                        </span>
-                        {idx < selectedVisitor.sections.length - 1 && (
-                          <ChevronRight size={12} style={{ color: 'var(--cms-text-muted)' }} />
-                        )}
-                      </React.Fragment>
-                    ))}
+                    {selectedVisitor.sections.map((sec: string, idx: number) => {
+                      const dwellSec = selectedVisitor.sectionDwellTimes?.[sec];
+                      return (
+                        <React.Fragment key={idx}>
+                          <span
+                            style={{
+                              padding: '4px 10px',
+                              backgroundColor: 'rgba(255,200,74,0.08)',
+                              border: '1px solid rgba(255,200,74,0.25)',
+                              borderRadius: '4px',
+                              color: 'var(--cms-amber)',
+                              fontSize: '11px',
+                              fontFamily: 'var(--cms-font-mono)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <span>{sec || '/'}</span>
+                            {dwellSec && (
+                              <span style={{ fontSize: '9.5px', color: 'var(--cms-text-secondary)', opacity: 0.8 }}>
+                                ({dwellSec}s)
+                              </span>
+                            )}
+                          </span>
+                          {idx < selectedVisitor.sections.length - 1 && (
+                            <ChevronRight size={12} style={{ color: 'var(--cms-text-muted)' }} />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IVisitorEvent {
+  type: string;
+  label: string;
+  target?: string;
+  timestamp: Date;
+}
+
 export interface IVisitorLog extends Document {
   ip: string;
   country: string;
@@ -28,7 +35,48 @@ export interface IVisitorLog extends Document {
   visitedAt: Date;
   lastActiveAt: Date;
   updatedAt: Date;
+
+  // Anonymous Fingerprint & Loyalty
+  visitorFingerprint?: string;
+  visitNumber: number;
+  isReturning: boolean;
+
+  // Hardware & Device X-Ray
+  gpuRenderer?: string;
+  cpuCores?: number;
+  deviceMemoryGb?: number;
+  touchPoints?: number;
+  pixelRatio?: number;
+  colorDepth?: number;
+
+  // Network Telemetry
+  connectionType?: string;
+  downlinkMbps?: number;
+  rttMs?: number;
+  saveData?: boolean;
+
+  // User Preferences
+  languages?: string[];
+  colorScheme?: string;
+  reducedMotion?: boolean;
+
+  // High-Intent Engagement
+  maxScrollPercentage?: number;
+  sectionDwellTimes?: Record<string, number>;
+  events?: IVisitorEvent[];
+  activeSeconds?: number;
+  idleSeconds?: number;
 }
+
+const VisitorEventSchema = new Schema<IVisitorEvent>(
+  {
+    type: { type: String, required: true },
+    label: { type: String, required: true },
+    target: { type: String, default: '' },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
 
 const VisitorLogSchema = new Schema<IVisitorLog>(
   {
@@ -66,6 +114,37 @@ const VisitorLogSchema = new Schema<IVisitorLog>(
     isBot: { type: Boolean, default: false },
     visitedAt: { type: Date, default: Date.now, index: true },
     lastActiveAt: { type: Date, default: Date.now, index: true },
+
+    // Anonymous Fingerprint & Loyalty
+    visitorFingerprint: { type: String, index: true, default: '' },
+    visitNumber: { type: Number, default: 1 },
+    isReturning: { type: Boolean, default: false, index: true },
+
+    // Hardware & Device X-Ray
+    gpuRenderer: { type: String, default: '' },
+    cpuCores: { type: Number },
+    deviceMemoryGb: { type: Number },
+    touchPoints: { type: Number, default: 0 },
+    pixelRatio: { type: Number, default: 1 },
+    colorDepth: { type: Number },
+
+    // Network Telemetry
+    connectionType: { type: String, default: '' },
+    downlinkMbps: { type: Number },
+    rttMs: { type: Number },
+    saveData: { type: Boolean, default: false },
+
+    // User Preferences
+    languages: { type: [String], default: [] },
+    colorScheme: { type: String, default: '' },
+    reducedMotion: { type: Boolean, default: false },
+
+    // High-Intent Engagement
+    maxScrollPercentage: { type: Number, default: 0 },
+    sectionDwellTimes: { type: Schema.Types.Mixed, default: {} },
+    events: { type: [VisitorEventSchema], default: [] },
+    activeSeconds: { type: Number, default: 0 },
+    idleSeconds: { type: Number, default: 0 },
   },
   {
     timestamps: true,
