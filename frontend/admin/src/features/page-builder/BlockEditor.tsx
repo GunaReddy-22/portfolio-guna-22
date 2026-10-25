@@ -708,15 +708,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ section, onChange }) =
                         >
                           <span
                             style={{
-                              width: '7px',
-                              height: '7px',
-                              borderRadius: '50%',
-                              background: activeColorTheme.color,
-                              boxShadow: `0 0 8px ${activeColorTheme.color}`,
-                            }}
-                          />
-                          <span
-                            style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',

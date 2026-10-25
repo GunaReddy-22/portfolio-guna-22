@@ -152,8 +152,7 @@ export function renderBlock(block: CmsBlock): string {
             ? `<span class="pill-announcement-tag"><span class="pill-announcement-icon" aria-hidden="true">📢</span>${escapeHtml(announcementTag)}</span>`
             : '';
 
-          const pulseHtml = `<span class="pulse"></span>`;
-          const contentInner = `${pulseHtml}${tagHtml}<span class="pill-label-text">${pillText}</span>`;
+          const contentInner = `${tagHtml}<span class="pill-label-text">${pillText}</span>`;
           const expiryDataAttr = expiresAtIso ? ` data-expires-at="${escapeAttr(expiresAtIso)}"` : '';
           const actionDataAttr = expiresAtIso ? ` data-expiry-action="${escapeAttr(expiryAction)}"` : '';
 
