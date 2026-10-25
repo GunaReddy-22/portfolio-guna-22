@@ -18,14 +18,18 @@ export function resolveApiUrl(path: string): string {
 // Simple, non-intrusive pill matching .hero-pill aesthetic
 // Cycles through engaging profile achievements while server spins up
 // ----------------------------------------------------------------------------
+// LIVE SYNC & PROFILE HIGHLIGHTS TICKER CONTROLLER
+// Simple, non-intrusive pill matching .hero-pill aesthetic
+// Cycles through engaging profile achievements while server spins up
+// ----------------------------------------------------------------------------
 const PROFILE_FACTS: string[] = [
+  '● CONNECTING LIVE CMS (RENDER COLD BOOT)...',
   'FULL STACK DEVELOPER INTERN @ ZENITHINDIA',
   '100+ LEETCODE DSA PROBLEMS SOLVED IN C++',
-  'BUNK360 · OFFLINE ANDROID ERP WITH SQLITE',
   'AI BUILDER · PINECONE RAG + GROQ LLM PIPELINES',
+  'BUNK360 · OFFLINE ANDROID ERP WITH SQLITE',
   'WINEERP · DESKTOP POS WITH RSA-2048 LICENSING',
   'B.TECH MECHANICAL @ NIT DELHI · 8.04 CGPA',
-  'CONNECTING LIVE CMS DATABASE IN BACKGROUND...',
 ];
 
 let tickerInterval: any = null;
@@ -100,6 +104,101 @@ function markSyncSuccess(mode: 'live' | 'cache' = 'live') {
   }
 }
 
+// ----------------------------------------------------------------------------
+// FULL-SCREEN APP PRELOADER CONTROLLER
+// Seamless boot sequence: telemetry progress, rotating highlights, graceful fade-out
+// ----------------------------------------------------------------------------
+class AppPreloader {
+  private el: HTMLElement | null;
+  private barEl: HTMLElement | null;
+  private logEl: HTMLElement | null;
+  private pctEl: HTMLElement | null;
+  private pillTextEl: HTMLElement | null;
+  private statusTitleEl: HTMLElement | null;
+  private timer: any = null;
+  private factTimer: any = null;
+  private fallbackTimer: any = null;
+  private isDone = false;
+
+  constructor() {
+    this.el = document.getElementById('app-preloader');
+    this.barEl = document.getElementById('preloader-progress-bar');
+    this.logEl = document.getElementById('preloader-log-text');
+    this.pctEl = document.getElementById('preloader-pct-text');
+    this.pillTextEl = document.getElementById('preloader-highlight-text');
+    this.statusTitleEl = document.getElementById('preloader-status-title');
+    this.startProgress();
+
+    // Safety fallback: Never trap user on preloader longer than 3.5s
+    this.fallbackTimer = setTimeout(() => {
+      this.complete();
+    }, 3500);
+  }
+
+  private startProgress() {
+    if (!this.el) return;
+    this.updateUI(25, 'Booting portfolio runtime...');
+
+    let step = 0;
+    const steps = [
+      { pct: 45, log: 'Loading design tokens & fonts...' },
+      { pct: 68, log: 'Mounting baseline portfolio blocks...' },
+      { pct: 85, log: 'Synchronizing interactive animations...' },
+      { pct: 94, log: 'Linking live cloud CMS database...' },
+    ];
+
+    this.timer = setInterval(() => {
+      if (this.isDone) return;
+      if (step < steps.length) {
+        this.updateUI(steps[step].pct, steps[step].log);
+        step++;
+      }
+    }, 120);
+
+    let factIdx = 0;
+    this.factTimer = setInterval(() => {
+      if (this.isDone) return;
+      factIdx = (factIdx + 1) % PROFILE_FACTS.length;
+      if (this.pillTextEl) {
+        this.pillTextEl.textContent = PROFILE_FACTS[factIdx];
+      }
+    }, 1600);
+  }
+
+  public updateUI(pct: number, log?: string) {
+    const val = Math.min(pct, 100);
+    if (this.barEl) this.barEl.style.width = `${val}%`;
+    if (this.pctEl) this.pctEl.textContent = `${val}%`;
+    if (log && this.logEl) this.logEl.textContent = log;
+  }
+
+  public complete(callback?: () => void) {
+    if (this.isDone) return;
+    this.isDone = true;
+    if (this.timer) clearInterval(this.timer);
+    if (this.factTimer) clearInterval(this.factTimer);
+    if (this.fallbackTimer) clearTimeout(this.fallbackTimer);
+
+    this.updateUI(100, 'System ready · Welcome');
+    if (this.statusTitleEl) {
+      this.statusTitleEl.textContent = 'SYSTEM READY';
+    }
+
+    const footer = document.querySelector('footer');
+    if (footer) footer.classList.add('ready');
+
+    setTimeout(() => {
+      if (this.el) {
+        this.el.classList.add('preloader-dismissed');
+        setTimeout(() => {
+          if (this.el) this.el.style.display = 'none';
+          if (callback) callback();
+        }, 650);
+      }
+    }, 320);
+  }
+}
+
 function renderCyberPageLoader(slug: string): string {
   return `
     <div class="cyber-page-loader">
@@ -124,6 +223,8 @@ function renderCyberPageLoader(slug: string): string {
 // 1. DYNAMIC CONTENT HYDRATION WITH RESILIENT RETRY
 // ----------------------------------------------------------------------------
 async function hydratePortfolio() {
+  const preloader = new AppPreloader();
+
   const urlParams = new URLSearchParams(window.location.search);
   let previewToken = urlParams.get('token');
   const previewParam = urlParams.get('preview');
@@ -146,13 +247,20 @@ async function hydratePortfolio() {
 
   const root = document.getElementById('cms-sections-root');
 
+  // Check if real section elements exist (safely ignores comments or whitespace)
+  const hasSections = root && root.querySelectorAll('section, .section, #hero').length > 0;
+
   // 1. If home route, immediately render complete static baseline so user gets 0ms instant content
   if (slug === 'home') {
-    if (root && root.innerHTML.trim() === '') {
+    if (root && !hasSections) {
       root.innerHTML = BASELINE_BLOCKS.map((sec) => renderBlock(sec)).join('');
       bindFormSubmissions();
       setupInteractiveBehaviors();
     }
+    // Dismiss preloader smoothly after baseline is rendered
+    setTimeout(() => {
+      preloader.complete();
+    }, 450);
   } else {
     // If custom subpage route, show authentic cyber loading graphic while waiting
     if (root) {
@@ -196,6 +304,7 @@ async function hydratePortfolio() {
             bindFormSubmissions();
             setupInteractiveBehaviors();
           }
+          preloader.complete();
           markSyncSuccess('live');
           connected = true;
           return;
@@ -215,6 +324,7 @@ async function hydratePortfolio() {
             </div>
           `;
         }
+        preloader.complete();
         markSyncSuccess('live');
         return;
       }
@@ -229,11 +339,12 @@ async function hydratePortfolio() {
 
   // If after retries the server could not be reached, ensure baseline is intact
   if (!connected) {
-    if (slug === 'home' && root && root.children.length === 0) {
+    if (slug === 'home' && root && root.querySelectorAll('section, .section, #hero').length === 0) {
       root.innerHTML = BASELINE_BLOCKS.map((sec) => renderBlock(sec)).join('');
       bindFormSubmissions();
       setupInteractiveBehaviors();
     }
+    preloader.complete();
     markSyncSuccess('cache');
   }
 }
