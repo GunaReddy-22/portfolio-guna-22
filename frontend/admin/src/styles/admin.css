@@ -1,7 +1,23 @@
 /* ==========================================================================
    GUNA CMS — ADMIN DASHBOARD DESIGN SYSTEM
-   Strictly scoped to .cms-app namespace to prevent public style leakage.
    ========================================================================== */
+
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #0a0d14 !important;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 .cms-app {
   --cms-bg: #0a0d14;
